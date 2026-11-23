@@ -1,0 +1,17 @@
+{
+  "name": "checkers-pro-online",
+  "version": "1.0.0",
+  "description": "Шашки Pro — Онлайн-шашки с мировыми правилами, рангами 1-10000+ и защищёнными аккаунтами",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "socket.io": "^4.7.5"
+  }
+}

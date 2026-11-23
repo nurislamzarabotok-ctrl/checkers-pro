@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: checkers-pro-online
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

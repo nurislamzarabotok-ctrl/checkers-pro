@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Шашки Pro — Онлайн, Турниры, Сундуки CS2, 72+ Стиля, ИИ Gemini</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* ======================== BASE THEMES ======================== */
+    :root {
+      --bg-app: #262522;
+      --bg-sidebar: #1f1e1b;
+      --bg-surface: #302e2b;
+      --bg-card: #272522;
+      --bg-elevated: #3c3a36;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #a8a29e;
+      --accent: #81b64c;
+      --accent-hover: #6fa33c;
+      --accent-shadow: #4f7a28;
+      --accent-fg: #ffffff;
+      --accent-soft: rgba(129, 182, 76, 0.18);
+    }
+    [data-theme="slate"] {
+      --bg-app: #0f172a; --bg-sidebar: #0b1120; --bg-surface: #1e293b;
+      --bg-card: #162032; --bg-elevated: #334155;
+      --border-color: rgba(148, 163, 184, 0.14); --text-primary: #f8fafc; --text-secondary: #94a3b8;
+    }
+    [data-theme="light"] {
+      --bg-app: #eef1f5; --bg-sidebar: #ffffff; --bg-surface: #ffffff;
+      --bg-card: #f8fafc; --bg-elevated: #e2e8f0;
+      --border-color: rgba(15, 23, 42, 0.10); --text-primary: #0f172a; --text-secondary: #475569;
+    }
+    [data-theme="oled"] {
+      --bg-app: #000000; --bg-sidebar: #050507; --bg-surface: #0c0c10;
+      --bg-card: #14141a; --bg-elevated: #22222b;
+      --border-color: rgba(255, 255, 255, 0.11); --text-primary: #ffffff; --text-secondary: #a1a1aa;
+    }
+    [data-theme="forest"] {
+      --bg-app: #0d1b15; --bg-sidebar: #08130e; --bg-surface: #13281f;
+      --bg-card: #0f2119; --bg-elevated: #1d3c2f;
+      --border-color: rgba(167, 243, 208, 0.12); --text-primary: #ecfdf5; --text-secondary: #86efac;
+    }
+
+    /* ======================== ACCENT PALETTES ======================== */
+    [data-accent="emerald"] { --accent: #81b64c; --accent-hover: #6fa33c; --accent-shadow: #4f7a28; --accent-fg: #ffffff; --accent-soft: rgba(129, 182, 76, 0.18); }
+    [data-accent="amber"]   { --accent: #f59e0b; --accent-hover: #d97706; --accent-shadow: #92400e; --accent-fg: #0f172a; --accent-soft: rgba(245, 158, 11, 0.18); }
+    [data-accent="sapphire"]{ --accent: #3b82f6; --accent-hover: #2563eb; --accent-shadow: #1d4ed8; --accent-fg: #ffffff; --accent-soft: rgba(59, 130, 246, 0.18); }
+    [data-accent="amethyst"]{ --accent: #a855f7; --accent-hover: #9333ea; --accent-shadow: #6b21a8; --accent-fg: #ffffff; --accent-soft: rgba(168, 85, 247, 0.18); }
+    [data-accent="ruby"]    { --accent: #f43f5e; --accent-hover: #e11d48; --accent-shadow: #9f1239; --accent-fg: #ffffff; --accent-soft: rgba(244, 63, 94, 0.18); }
+    [data-accent="cyan"]    { --accent: #06b6d4; --accent-hover: #0891b2; --accent-shadow: #155e75; --accent-fg: #0f172a; --accent-soft: rgba(6, 182, 212, 0.18); }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overscroll-behavior: none;
+    }
+    body.arena-lock { overflow: hidden; height: 100dvh; max-height: 100dvh; }
+
+    .sidebar-bg { background-color: var(--bg-sidebar); border-color: var(--border-color); }
+    .surface { background-color: var(--bg-surface); border-color: var(--border-color); }
+    .card { background-color: var(--bg-card); border-color: var(--border-color); }
+    .elevated { background-color: var(--bg-elevated); }
+    .text-muted { color: var(--text-secondary); }
+    .accent-bg { background-color: var(--accent); color: var(--accent-fg); }
+    .accent-bg:hover { background-color: var(--accent-hover); }
+    .accent-btn-3d {
+      background-color: var(--accent);
+      color: var(--accent-fg);
+      box-shadow: 0 4px 0 var(--accent-shadow);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+    }
+    .accent-btn-3d:hover { background-color: var(--accent-hover); }
+    .accent-btn-3d:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-shadow); }
+    .accent-text { color: var(--accent); }
+    .accent-soft { background-color: var(--accent-soft); color: var(--accent); }
+
+    #boardCanvas {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+    }
+    .pb-safe { padding-bottom: max(0.35rem, env(safe-area-inset-bottom)); }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 999px; }
+
+    .toggle-switch {
+      position: relative; width: 44px; height: 24px; border-radius: 999px;
+      background: var(--bg-elevated); transition: background 0.2s ease; cursor: pointer;
+      flex-shrink: 0; border: 1px solid var(--border-color);
+    }
+    .toggle-switch.on { background: var(--accent); border-color: var(--accent); }
+    .toggle-switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+      border-radius: 50%; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
+    }
+    .toggle-switch.on::after { transform: translateX(20px); }
+
+    .modal-backdrop {
+      background: rgba(2, 6, 23, 0.78);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+    }
+    .rotate-180-player { transform: rotate(180deg); }
+    .nav-item.active { color: var(--accent); background-color: var(--accent-soft); }
+    .pulse-dot { animation: pulseDot 1.6s infinite; }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+
+    /* Floating Emoji Reaction Animation */
+    .emoji-float {
+      position: absolute;
+      pointer-events: none;
+      z-index: 40;
+      font-size: 2.2rem;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.45));
+      animation: floatUpPop 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes floatUpPop {
+      0% { opacity: 0; transform: translate(-50%, 10px) scale(0.4); }
+      18% { opacity: 1; transform: translate(-50%, -14px) scale(1.22); }
+      35% { opacity: 1; transform: translate(-50%, -22px) scale(1.0); }
+      100% { opacity: 0; transform: translate(-50%, -76px) scale(0.92); }
+    }
+
+    /* Rank Stripes (Полоски I, II, III) */
+    .rank-stripe {
+      display: inline-block;
+      width: 4px;
+      height: 11px;
+      border-radius: 2px;
+      background: currentColor;
+      opacity: 0.22;
+    }
+    .rank-stripe.filled { opacity: 1; box-shadow: 0 0 6px currentColor; }
+
+    /* CS2 Case Roulette Styling */
+    .cs2-roulette-viewport {
+      position: relative;
+      overflow: hidden;
+      height: 152px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(2,6,23,0.98) 100%);
+      border: 2px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.85);
+    }
+    .cs2-laser-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #fbbf24 0%, #ef4444 50%, #fbbf24 100%);
+      box-shadow: 0 0 14px #fbbf24, 0 0 28px #ef4444;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .cs2-laser-line::before, .cs2-laser-line::after {
+      content: '▼';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fbbf24;
+      font-size: 12px;
+      line-height: 1;
+      text-shadow: 0 0 8px #f59e0b;
+    }
+    .cs2-laser-line::before { top: 2px; }
+    .cs2-laser-line::after { content: '▲'; bottom: 2px; }
+    .cs2-roulette-track {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      gap: 10px;
+      padding: 0 24px;
+      will-change: transform;
+    }
+    .cs2-item-card {
+      width: 124px;
+      height: 124px;
+      flex-shrink: 0;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 8px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      background: rgba(30, 41, 59, 0.85);
+      user-select: none;
+    }
+
+    /* Swipeable Level Road Container */
+    .level-road-scroll {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 16px 8px 22px 8px;
+      scroll-behavior: smooth;
+      cursor: grab;
+      user-select: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .level-road-scroll:active { cursor: grabbing; }
+  </style>
+</head>
+<body class="min-h-dvh overflow-x-hidden">
+
+  <!-- =========================================================================
+       PAGE 1: LOBBY SHELL (SIDEBAR + MULTI-VIEW HUB)
+       ========================================================================= -->
+  <div id="lobbyShell" class="flex min-h-dvh">
+    <!-- Desktop Left Rail Sidebar -->
+    <aside class="hidden md:flex flex-col w-64 shrink-0 sidebar-bg border-r sticky top-0 h-dvh p-3.5 justify-between z-30">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between px-2 pt-1">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl accent-bg flex items-center justify-center shadow-md shrink-0">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                <circle cx="12" cy="12" r="5.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M9 13l1.5-3.5L12 11.5l1.5-2L15 13H9z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-lg font-black tracking-tight leading-none">Шашки <span class="accent-text">Pro</span></div>
+              <div id="serverModeBadge" class="text-[10px] text-muted mt-0.5 font-semibold">Онлайн / P2P</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Currency & Streak Quick Pill -->
+        <div class="grid grid-cols-3 gap-1.5 px-1">
+          <div class="card border rounded-xl px-2 py-1.5 text-center" title="Монеты">
+            <div class="text-[10px] text-muted font-bold">Монеты</div>
+            <div id="sidebarCoins" class="text-xs font-black text-amber-400">🪙 500</div>
+          </div>
+          <div class="card border rounded-xl px-2 py-1.5 text-center" title="Кристаллы">
+            <div class="text-[10px] text-muted font-bold">Кристаллы</div>
+            <div id="sidebarCrystals" class="text-xs font-black text-cyan-400">💎 25</div>
+          </div>
+          <div class="card border rounded-xl px-2 py-1.5 text-center" title="Текущая серия побед">
+            <div class="text-[10px] text-muted font-bold">Серия</div>
+            <div id="sidebarStreak" class="text-xs font-black text-orange-400">🔥 0</div>
+          </div>
+        </div>
+
+        <nav class="space-y-1" id="sidebarNav">
+          <button data-tab="home" class="nav-item active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition">
+            <span class="text-lg">♟️</span><span>Играть</span>
+          </button>
+          <button data-tab="tournaments" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition">
+            <span class="flex items-center gap-3"><span class="text-lg">🏆</span><span>Турниры</span></span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-extrabold">LIVE</span>
+          </button>
+          <button data-tab="chests" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition">
+            <span class="flex items-center gap-3"><span class="text-lg">📦</span><span>Сундуки CS2</span></span>
+            <span id="chestsBadgeDesktop" class="text-[11px] px-2 py-0.5 rounded-full accent-bg font-extrabold">0</span>
+          </button>
+          <button data-tab="styles" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition">
+            <span class="flex items-center gap-3"><span class="text-lg">🎨</span><span>Стили и Скины</span></span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md elevated text-muted font-bold">72+</span>
+          </button>
+          <button data-tab="history" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition">
+            <span class="flex items-center gap-3"><span class="text-lg">📜</span><span>История игр</span></span>
+            <span id="historyBadgeDesktop" class="text-[11px] px-2 py-0.5 rounded-full elevated font-bold">0</span>
+          </button>
+          <button data-tab="settings" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition">
+            <span class="text-lg">⚙️</span><span>Настройки и ИИ</span>
+          </button>
+          <button data-tab="account" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition">
+            <span class="text-lg">👤</span><span>Профиль и Квесты</span>
+          </button>
+        </nav>
+
+        <button id="resumeGameSidebarBtn" class="hidden w-full py-2.5 px-3 rounded-xl accent-soft border text-xs font-extrabold flex items-center justify-center gap-2 transition hover:opacity-90" style="border-color: var(--accent);">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+          <span>Вернуться к партии →</span>
+        </button>
+      </div>
+
+      <!-- Bottom Auth & Account Card -->
+      <div class="space-y-2">
+        <button id="sidebarLevelRoadBtn" class="w-full py-2 px-3 rounded-xl card border text-xs font-extrabold flex items-center justify-between hover:opacity-90 transition">
+          <span>🎁 Шкала уровней</span>
+          <span class="accent-text">Свайп →</span>
+        </button>
+        <button id="sidebarAuthBtn" class="w-full py-2 px-3 rounded-xl accent-bg text-xs font-extrabold transition shadow-sm">
+          🔐 Войти / Регистрация
+        </button>
+        <button id="sidebarAccountCard" class="w-full p-2.5 rounded-2xl surface border flex items-center gap-2.5 hover:opacity-95 transition text-left">
+          <div id="sidebarAvatar" class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shrink-0 overflow-hidden"></div>
+          <div class="min-w-0 flex-1">
+            <div id="sidebarUsername" class="text-xs font-extrabold truncate">Игрок</div>
+            <div id="sidebarRankShort" class="text-[10px] accent-text font-bold truncate">Ур. 1 • Новичок I</div>
+            <div id="sidebarElo" class="text-[10px] text-muted font-semibold">1200 ELO</div>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Lobby Column -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Mobile Top Bar -->
+      <header class="md:hidden sidebar-bg border-b sticky top-0 z-30 px-3 h-14 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl accent-bg flex items-center justify-center shadow">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/>
+              <path d="M9 13l1.5-3.5L12 11.5l1.5-2L15 13H9z"/>
+            </svg>
+          </div>
+          <span class="text-sm font-black">Шашки <span class="accent-text">Pro</span></span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="resumeGameMobileBtn" class="hidden px-2 py-1 rounded-xl accent-bg text-[10px] font-extrabold">К партии →</button>
+          <span id="mobileCoinsPill" class="px-2 py-1 rounded-lg card border text-[11px] font-extrabold text-amber-400">🪙 500</span>
+          <span id="mobileStreakPill" class="px-2 py-1 rounded-lg card border text-[11px] font-extrabold text-orange-400">🔥 0</span>
+          <button id="mobileAccountPill" class="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-xl surface border" title="Нажмите для шкалы уровней">
+            <div id="mobileHeaderAvatar" class="w-6 h-6 rounded-lg flex items-center justify-center text-xs overflow-hidden"></div>
+            <span id="mobileHeaderLevel" class="text-[11px] font-extrabold accent-text">Ур.1</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Lobby Views -->
+      <main class="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-6 pb-24 md:pb-8">
+
+        <!-- ===================================================================
+             VIEW 1: HOME / PLAY HUB
+             =================================================================== -->
+        <section id="tab-home" class="tab-panel space-y-5">
+          <!-- Guest Mode & Migration / Unfinished Game Resume Banner -->
+          <div id="guestStatusBanner" class="hidden surface border-2 rounded-3xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="border-color: rgba(245, 158, 11, 0.55);">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400">👤 ГОСТЕВОЙ РЕЖИМ (IndexedDB)</span>
+                <span id="guestBannerNickname" class="text-xs font-extrabold">Guest_1000</span>
+              </div>
+              <p class="text-xs text-muted">
+                В гостевом режиме доступна игра только против компьютера (ИИ), а прогресс, статистика и история партий надёжно сохраняются локально в <b>IndexedDB</b>. Зарегистрируйтесь, чтобы перенести весь прогресс в аккаунт и открыть онлайн-комнаты с реальными игроками!
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
+              <button id="migrateGuestBannerBtn" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-2xl accent-btn-3d text-xs font-black">
+                🔄 Перенести профиль в аккаунт
+              </button>
+            </div>
+          </div>
+
+          <!-- Unfinished Saved Game Resume Banner (Continuity from the exact same spot!) -->
+          <div id="savedMatchResumeBanner" class="hidden surface border-2 rounded-3xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="border-color: var(--accent);">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl accent-soft flex items-center justify-center text-xl shrink-0">♟️</div>
+              <div>
+                <div class="text-sm font-black">Обнаружена незавершённая партия!</div>
+                <div id="savedMatchResumeDesc" class="text-xs text-muted">Вы можете продолжить игру ровно с того же хода, на котором остановились.</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+              <button id="resumeSavedMatchBannerBtn" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-2xl accent-btn-3d text-xs font-black">
+                ▶ Продолжить с того же места
+              </button>
+              <button id="discardSavedMatchBtn" class="px-3 py-2.5 rounded-xl card border text-xs font-bold text-muted hover:text-rose-400">
+                ✕
+              </button>
+            </div>
+          </div>
+          <!-- Hero Banner -->
+          <div class="surface border rounded-3xl p-4 sm:p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 shadow-lg">
+            <div class="flex items-center gap-4 min-w-0 w-full lg:w-auto">
+              <div id="heroAvatar" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg shrink-0 overflow-hidden"></div>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h1 class="text-xl sm:text-2xl font-black tracking-tight truncate">Привет, <span id="heroName">Игрок</span>!</h1>
+                  <span id="heroFlag" class="text-lg">🇰🇿</span>
+                  <span id="heroTitleBadge" class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Новичок шашек</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                  <div id="heroRankRow" class="flex flex-wrap items-center gap-2"></div>
+                  <button id="heroOpenLevelRoadBtn" class="text-xs font-extrabold px-2.5 py-1 rounded-xl accent-soft border hover:opacity-90 transition flex items-center gap-1" style="border-color: var(--accent);">
+                    <span>🎁 Награды уровней (Свайп →)</span>
+                  </button>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                  <span id="heroEloBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg accent-soft">1200 ELO</span>
+                  <span id="heroWinsBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg card border text-emerald-400">Побед: 0</span>
+                  <span id="heroStreakBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-orange-500/15 text-orange-400 border border-orange-500/30">🔥 Серия побед: 0</span>
+                  <span id="heroRulePill" class="text-xs font-bold px-2.5 py-1 rounded-lg card border">Русские шашки (8×8)</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full lg:w-auto shrink-0">
+              <button id="heroQuickPlayBtn" class="flex-1 lg:flex-initial px-6 py-3.5 rounded-2xl accent-btn-3d text-sm sm:text-base font-black tracking-tight flex items-center justify-center gap-2">
+                <span>▶</span><span>Играть сейчас</span>
+              </button>
+              <button id="heroQuickTourneyBtn" class="px-4 py-3.5 rounded-2xl surface border text-xs sm:text-sm font-extrabold hover:opacity-90 transition flex items-center justify-center gap-1.5">
+                <span>🏆</span><span>Турниры</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Two-Column Setup Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <!-- Modes -->
+            <div class="lg:col-span-6 surface border rounded-3xl p-4 sm:p-5 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-extrabold">Режим игры</h2>
+                  <p class="text-xs text-muted mt-0.5">С ИИ Gemini, вживую, реальный онлайн с кодом и зрителями или Bluetooth</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2.5" id="modeCards">
+                <button data-mode="ai" class="mode-card text-left p-3.5 rounded-2xl card border-2 transition">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-2xl">🤖</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 font-extrabold">Gemini AI</span>
+                  </div>
+                  <div class="text-sm font-extrabold">Против ИИ</div>
+                  <div class="text-[11px] text-muted mt-0.5">Живые комментарии ходов</div>
+                </button>
+                <button data-mode="local" class="mode-card text-left p-3.5 rounded-2xl card border-2 transition">
+                  <div class="text-2xl mb-1">🤝</div>
+                  <div class="text-sm font-extrabold">Вживую</div>
+                  <div class="text-[11px] text-muted mt-0.5">На одном устройстве</div>
+                </button>
+                <button data-mode="online" class="mode-card text-left p-3.5 rounded-2xl card border-2 transition">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-2xl">🌐</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-extrabold">+Зрители 👁</span>
+                  </div>
+                  <div class="text-sm font-extrabold">Онлайн</div>
+                  <div class="text-[11px] text-muted mt-0.5">Реальные игроки по коду</div>
+                </button>
+                <button data-mode="bluetooth" class="mode-card text-left p-3.5 rounded-2xl card border-2 transition">
+                  <div class="text-2xl mb-1">📶</div>
+                  <div class="text-sm font-extrabold">Bluetooth</div>
+                  <div class="text-[11px] text-muted mt-0.5">Сопряжение устройств рядом</div>
+                </button>
+              </div>
+
+              <!-- AI Options (5 DISTINCT LEVELS WITH PERSONALITIES) -->
+              <div id="modeOptionsAI" class="card border rounded-2xl p-3.5 space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <label class="text-xs font-bold">Уровень бота (5 уровней ИИ)</label>
+                  <select id="aiDifficultySelect" class="px-3 py-1.5 rounded-xl surface border text-xs font-bold">
+                    <option value="1">1. Новичок (750 ELO • ×0.7 EXP)</option>
+                    <option value="2">2. Любитель (1150 ELO • ×1.0 EXP)</option>
+                    <option value="3" selected>3. Средний (1500 ELO • ×1.3 EXP)</option>
+                    <option value="4">4. Мастер (1850 ELO • ×1.65 EXP)</option>
+                    <option value="5">5. Гроссмейстер (2300 ELO • ×2.2 EXP)</option>
+                  </select>
+                </div>
+                <div id="aiBotPersonaDesc" class="p-2.5 rounded-xl surface border text-[11px] text-muted leading-relaxed">
+                  🎯 <b>Средний (Клубный игрок, 1500 ELO):</b> Контролирует центр, защищает задний ряд и видит тактику на 3 хода вперёд. Изредка допускает мелкие неточности.
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <label class="text-xs font-bold">Ваш цвет</label>
+                  <div class="flex gap-1.5">
+                    <button data-color="w" class="player-color-btn px-3 py-1.5 rounded-xl text-xs font-bold accent-bg">Белые</button>
+                    <button data-color="b" class="player-color-btn px-3 py-1.5 rounded-xl text-xs font-semibold surface border">Чёрные</button>
+                    <button data-color="r" class="player-color-btn px-3 py-1.5 rounded-xl text-xs font-semibold surface border">Случайно</button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between gap-2 pt-2 border-t" style="border-color: var(--border-color);">
+                  <div>
+                    <div class="text-xs font-bold flex items-center gap-1.5">
+                      <span>💬 ИИ-комментатор Gemini</span>
+                      <span id="geminiKeyStatusBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">Активен</span>
+                    </div>
+                    <div class="text-[11px] text-muted">ИИ комментирует ваши ходы и отвечает в чате</div>
+                  </div>
+                  <button data-setting="aiCommentary" class="setting-toggle toggle-switch on"></button>
+                </div>
+              </div>
+
+              <!-- Local Options -->
+              <div id="modeOptionsLocal" class="hidden card border rounded-2xl p-3.5 space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[11px] text-muted font-semibold">Игрок 1 (Белые)</label>
+                    <input id="localP1Name" type="text" value="Игрок 1" class="w-full mt-1 px-3 py-1.5 rounded-xl surface border text-xs font-semibold" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] text-muted font-semibold">Игрок 2 (Чёрные)</label>
+                    <input id="localP2Name" type="text" value="Игрок 2" class="w-full mt-1 px-3 py-1.5 rounded-xl surface border text-xs font-semibold" />
+                  </div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <div class="text-xs font-bold">Режим «Лицом к лицу»</div>
+                    <div class="text-[11px] text-muted">Поворачивает верхнюю панель на 180° для стола</div>
+                  </div>
+                  <button id="toggleTabletopBtn" class="toggle-switch" aria-label="Лицом к лицу"></button>
+                </div>
+              </div>
+
+              <!-- Online Options (REAL PLAYERS + WAITING ROOM BY CODE + SPECTATORS) -->
+              <div id="modeOptionsOnline" class="hidden card border rounded-2xl p-3.5 space-y-3.5">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs font-extrabold text-emerald-400 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+                    <span>Реальный Онлайн (Без подставных ботов)</span>
+                  </div>
+                  <button id="refreshOnlineRoomsBtn" class="text-[11px] accent-text font-bold hover:underline">↻ Обновить</button>
+                </div>
+
+                <!-- Create or Join by Code -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button id="serverCreateRoomBtn" class="py-2.5 px-3 rounded-xl accent-bg text-xs font-extrabold flex items-center justify-center gap-1.5">
+                    <span>➕ Создать комнату с кодом</span>
+                  </button>
+                  <button id="onlineQuickMatchBtn" class="py-2.5 px-3 rounded-xl surface border text-xs font-extrabold hover:opacity-90 flex items-center justify-center gap-1.5">
+                    <span>⚡ Поиск реального игрока</span>
+                  </button>
+                </div>
+
+                <!-- Enter Room Code to Play or Spectate -->
+                <div class="p-2.5 rounded-xl surface border space-y-2">
+                  <label class="text-[11px] font-bold text-muted block">Войти по коду комнаты (как Игрок или Зритель):</label>
+                  <div class="flex flex-wrap sm:flex-nowrap gap-1.5">
+                    <input id="serverJoinCodeInput" type="text" maxlength="8" placeholder="КОД (напр. 4821)" class="flex-1 min-w-[110px] px-3 py-2 rounded-xl card border text-xs font-mono uppercase text-center font-bold" />
+                    <button id="serverJoinRoomBtn" class="px-3.5 py-2 rounded-xl accent-bg text-xs font-extrabold">🎮 Играть</button>
+                    <button id="serverSpectateRoomBtn" class="px-3.5 py-2 rounded-xl card border text-xs font-extrabold text-sky-400 border-sky-500/30 hover:bg-sky-500/10">👁 Смотреть</button>
+                  </div>
+                  <div id="serverRoomStatus" class="text-[11px] font-semibold text-amber-400"></div>
+                </div>
+
+                <!-- Active Rooms & Live Matches to Join or Watch -->
+                <div class="space-y-1.5">
+                  <div class="text-[11px] font-bold text-muted flex items-center justify-between">
+                    <span>Открытые комнаты и матчи для зрителей:</span>
+                    <span id="activeRoomsCountLabel" class="font-mono text-[10px]">0 комнат</span>
+                  </div>
+                  <div id="onlineActiveRoomsList" class="space-y-1.5 max-h-40 overflow-y-auto custom-scroll"></div>
+                </div>
+
+                <!-- Serverless WebRTC Direct P2P Option -->
+                <div class="pt-2 border-t" style="border-color: var(--border-color);">
+                  <button id="onlineP2PToggleBtn" class="w-full py-1.5 px-3 rounded-xl elevated text-[11px] font-bold flex items-center justify-between">
+                    <span>🔗 Прямой P2P-код WebRTC (без центрального сервера)</span>
+                    <span>▼</span>
+                  </button>
+                  <div id="p2pPanel" class="hidden space-y-2.5 pt-2.5">
+                    <div class="flex gap-2">
+                      <button id="p2pCreateOfferBtn" class="flex-1 py-2 rounded-xl surface border text-xs font-bold">1. Создать P2P-код</button>
+                      <button id="p2pJoinBtn" class="flex-1 py-2 rounded-xl surface border text-xs font-bold">2. Вставить P2P-код</button>
+                    </div>
+                    <div id="p2pCodeBox" class="hidden space-y-2">
+                      <label id="p2pCodeLabel" class="text-[11px] font-bold block"></label>
+                      <textarea id="p2pOutputCode" rows="2" readonly class="w-full p-2 rounded-xl surface border text-[11px] font-mono"></textarea>
+                      <button id="p2pCopyBtn" class="w-full py-1.5 rounded-xl elevated text-xs font-bold">Скопировать P2P-код</button>
+                    </div>
+                    <div id="p2pRemoteBox" class="hidden space-y-2">
+                      <label id="p2pRemoteLabel" class="text-[11px] font-bold block">Вставьте P2P-код от друга:</label>
+                      <textarea id="p2pInputCode" rows="2" placeholder="Вставьте полученный код..." class="w-full p-2 rounded-xl surface border text-[11px] font-mono"></textarea>
+                      <button id="p2pAcceptBtn" class="w-full py-2 rounded-xl accent-bg text-xs font-bold">Подключить P2P</button>
+                    </div>
+                    <div id="p2pStatusText" class="text-[11px] text-muted"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bluetooth Options (FULL WORKING NEARBY PAIRING + WEB BLUETOOTH GATT) -->
+              <div id="modeOptionsBluetooth" class="hidden card border rounded-2xl p-3.5 space-y-3">
+                <div class="flex items-start gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0 text-lg">📶</div>
+                  <div class="text-xs leading-relaxed">
+                    <div class="font-bold">Полноценная игра через Bluetooth / Рядом</div>
+                    <p id="btSupportNote" class="text-[11px] text-muted mt-0.5"></p>
+                  </div>
+                </div>
+
+                <!-- Method 1: Nearby Bluetooth PIN Pairing (Works on ALL phones & PCs!) -->
+                <div class="p-3 rounded-xl surface border space-y-2.5">
+                  <div class="text-xs font-extrabold text-sky-400">Способ 1: Быстрое Bluetooth-сопряжение по PIN-коду</div>
+                  <p class="text-[11px] text-muted">Создайте Bluetooth-пару на одном устройстве и введите 4-значный PIN на втором устройстве рядом:</p>
+                  <div class="flex flex-wrap sm:flex-nowrap gap-1.5">
+                    <button id="btCreatePinBtn" class="py-2 px-3 rounded-xl accent-bg text-xs font-extrabold shrink-0">📡 Создать PIN-пару</button>
+                    <input id="btPinInput" type="text" maxlength="6" placeholder="PIN (напр. 7391)" class="flex-1 min-w-[95px] px-2.5 py-1.5 rounded-xl card border text-xs font-mono text-center uppercase font-bold" />
+                    <button id="btJoinPinBtn" class="py-2 px-3 rounded-xl card border text-xs font-extrabold shrink-0">Подключиться</button>
+                  </div>
+                  <div id="btPinStatus" class="text-[11px] font-bold text-amber-400"></div>
+                </div>
+
+                <!-- Method 2: Direct Web Bluetooth GATT Scanner -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button id="btScanBtn" class="py-2.5 px-3 rounded-xl surface border text-xs font-bold hover:opacity-90">🔍 Сканер Web Bluetooth (BLE)</button>
+                  <button id="btFallbackP2PBtn" class="py-2.5 px-3 rounded-xl elevated text-xs font-bold hover:opacity-90">🔗 Прямой P2P без сети</button>
+                </div>
+              </div>
+
+              <!-- Play Assist / Fair-Play Mode (3 Modes with EXP & Economy Multipliers) -->
+              <div class="card border rounded-2xl p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-xs font-extrabold">⚖️ Режим свободы и честности (Множитель EXP и 🪙)</div>
+                    <div class="text-[11px] text-muted">Влияет на доступность подсказок, отмены хода и награду за матч</div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="assistModeCards">
+                  <button data-assist="free" class="assist-mode-btn text-left p-2.5 rounded-xl surface border-2 transition">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-extrabold">🟢 Свободный</span>
+                      <span class="text-[10px] font-black text-sky-400">×0.75 EXP</span>
+                    </div>
+                    <div class="text-[10px] text-muted mt-1 leading-snug">Полная свобода: подсказки + можно одуматься и переходить</div>
+                  </button>
+                  <button data-assist="rethink" class="assist-mode-btn text-left p-2.5 rounded-xl surface border-2 transition">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-extrabold">🟡 Одуматься</span>
+                      <span class="text-[10px] font-black text-amber-400">×1.0 EXP</span>
+                    </div>
+                    <div class="text-[10px] text-muted mt-1 leading-snug">Без подсказок, но можно отменить ход и сходить ещё раз</div>
+                  </button>
+                  <button data-assist="honest" class="assist-mode-btn text-left p-2.5 rounded-xl surface border-2 transition">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-extrabold">🔴 Честно</span>
+                      <span class="text-[10px] font-black text-emerald-400">×1.50 EXP</span>
+                    </div>
+                    <div class="text-[10px] text-muted mt-1 leading-snug">Без подсказок и без возврата ходов. Максимум наград!</div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Time Control & Live Economy Reward Preview -->
+              <div class="card border rounded-2xl p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <div class="text-xs font-bold">⏱ Контроль времени</div>
+                    <div class="text-[11px] text-muted">Блиц и Рапид дают дополнительный бонус к EXP</div>
+                  </div>
+                  <select id="lobbyTimeControl" class="px-3 py-1.5 rounded-xl surface border text-xs font-semibold">
+                    <option value="none">Без таймера (×1.0)</option>
+                    <option value="180+2">Блиц 3+2 (×1.25 EXP)</option>
+                    <option value="300+3">Рапид 5+3 (×1.15 EXP)</option>
+                    <option value="600+0">Классика 10 мин (×1.10 EXP)</option>
+                    <option value="900+10">Турнир 15+10 (×1.15 EXP)</option>
+                  </select>
+                </div>
+                <div id="matchRewardPreviewBox" class="p-2.5 rounded-xl surface border flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                  <span class="text-muted font-semibold">Награда за победу с текущими настройками:</span>
+                  <span id="matchRewardPreviewValue" class="font-black accent-text">~150 EXP • ~120 🪙 (×1.50)</span>
+                </div>
+              </div>
+
+              <button id="applyModeStartBtn" class="w-full py-3.5 rounded-2xl accent-btn-3d text-sm font-black tracking-tight">
+                Открыть арену и начать партию →
+              </button>
+            </div>
+
+            <!-- World Rules + Daily Quests Preview -->
+            <div class="lg:col-span-6 space-y-5">
+              <!-- Daily Quests Widget -->
+              <div class="surface border rounded-3xl p-4 sm:p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h2 class="text-base font-extrabold flex items-center gap-2">
+                      <span>📋 Ежедневные квесты</span>
+                      <span class="text-[11px] px-2 py-0.5 rounded-full accent-soft font-extrabold">+150–500 EXP</span>
+                    </h2>
+                    <p class="text-xs text-muted mt-0.5">Выполняйте задачи в партиях для быстрого повышения уровня</p>
+                  </div>
+                </div>
+                <div id="homeDailyQuestsList" class="space-y-2"></div>
+              </div>
+
+              <!-- World Rules -->
+              <div class="surface border rounded-3xl p-4 sm:p-5 space-y-3.5">
+                <div>
+                  <h2 class="text-lg font-extrabold">Мировые правила шашек</h2>
+                  <p class="text-xs text-muted mt-0.5">7 официальных разновидностей со всего мира</p>
+                </div>
+                <div id="rulesList" class="space-y-2 max-h-[380px] overflow-y-auto custom-scroll pr-1"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             VIEW 2: TOURNAMENTS (LIVE REAL-TIME + CUSTOM WITH BOTS/PLAYERS + 3 PRIZE PLACES)
+             =================================================================== -->
+        <section id="tab-tournaments" class="tab-panel hidden space-y-5">
+          <!-- Header & Active Tournament Banner -->
+          <div class="surface border rounded-3xl p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">🏆</span>
+                <h2 class="text-xl font-black">Турнирная Арена Шашки Pro</h2>
+                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold">LIVE РАСПИСАНИЕ</span>
+              </div>
+              <p class="text-xs text-muted mt-1">
+                Участвуйте в автоматических Live-турнирах в реальном времени или создайте свой турнир с друзьями по коду или с ботами.
+                За <b>1-е, 2-е и 3-е призовые места</b> выдаются <b>EXP, Монеты, Кристаллы, Титулы и Сундуки CS2</b>!
+              </p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="px-3 py-2 rounded-xl card border text-xs font-extrabold">🎟️ Билетов: <span id="tourneyTicketsCount" class="accent-text">2</span></span>
+              <button id="openCreateTourneyModalBtn" class="px-4 py-2.5 rounded-2xl accent-btn-3d text-xs font-black">
+                ➕ Создать свой турнир
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Tournament Bracket / Live Stage (shown when user is inside a tournament) -->
+          <div id="activeTournamentStage" class="hidden surface border-2 rounded-3xl p-5 space-y-4" style="border-color: var(--accent);">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span id="activeTourneyBadge" class="text-[11px] px-2.5 py-0.5 rounded-full accent-bg font-extrabold">Идёт турнир</span>
+                  <span id="activeTourneyCodePill" class="text-xs font-mono px-2.5 py-0.5 rounded-lg card border font-bold">Код: TRN-0000</span>
+                </div>
+                <h3 id="activeTourneyTitle" class="text-lg font-black mt-1">Кубок Арены</h3>
+                <p id="activeTourneyMeta" class="text-xs text-muted"></p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="playNextTourneyMatchBtn" class="px-5 py-2.5 rounded-2xl accent-btn-3d text-xs font-black">
+                  ⚔️ Сыграть матч раунда →
+                </button>
+                <button id="simTourneyRoundBtn" class="px-3.5 py-2.5 rounded-xl card border text-xs font-bold hover:opacity-90">
+                  ⏩Быстрый итог раунда
+                </button>
+                <button id="leaveTourneyBtn" class="px-3 py-2.5 rounded-xl bg-rose-500/15 text-rose-400 text-xs font-bold">
+                  Покинуть
+                </button>
+              </div>
+            </div>
+
+            <!-- 3 Prize Places Podium Preview -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="activeTourneyPodium"></div>
+
+            <!-- Standings / Bracket Table -->
+            <div class="card border rounded-2xl p-3.5 space-y-2">
+              <div class="text-xs font-extrabold flex items-center justify-between">
+                <span>Участники и Турнирная таблица</span>
+                <span id="activeTourneyRoundLabel" class="text-muted">Раунд 1</span>
+              </div>
+              <div id="activeTourneyStandings" class="space-y-1.5"></div>
+            </div>
+          </div>
+
+          <!-- Two Columns: Live Automated Tournaments & Custom/Invite Join -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Real-time Automated System Tournaments -->
+            <div class="lg:col-span-8 surface border rounded-3xl p-5 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-base font-extrabold flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
+                    <span>Автоматические Live-турниры в реальном времени</span>
+                  </h3>
+                  <p class="text-xs text-muted mt-0.5">Система автоматически запускает турниры по таймеру. Если турнир уже начался — дождитесь следующего окна регистрации!</p>
+                </div>
+              </div>
+              <div id="liveSystemTournamentsList" class="space-y-3"></div>
+            </div>
+
+            <!-- Join by Invite Code & Quick Custom Tournament Builder -->
+            <div class="lg:col-span-4 space-y-4">
+              <!-- Join Tournament by Code -->
+              <div class="surface border rounded-3xl p-4 sm:p-5 space-y-3">
+                <h3 class="text-base font-extrabold">🔗 Войти в турнир по коду</h3>
+                <p class="text-xs text-muted">Получили код приглашения от друга? Введите его, чтобы войти участником или зрителем:</p>
+                <div class="flex gap-1.5">
+                  <input id="joinTourneyCodeInput" type="text" maxlength="12" placeholder="TRN-4821" class="flex-1 px-3 py-2 rounded-xl card border text-xs font-mono uppercase font-bold" />
+                  <button id="joinTourneyByCodeBtn" class="px-3.5 py-2 rounded-xl accent-bg text-xs font-extrabold">Войти</button>
+                </div>
+              </div>
+
+              <!-- Create Custom Tournament Card -->
+              <div class="surface border rounded-3xl p-4 sm:p-5 space-y-3">
+                <h3 class="text-base font-extrabold">⚙️ Создать свой турнир</h3>
+                <div class="space-y-2.5 text-xs">
+                  <div>
+                    <label class="font-bold text-muted block mb-1">Название турнира</label>
+                    <input id="customTourneyName" type="text" maxlength="32" value="Королевский Кубок" class="w-full px-3 py-2 rounded-xl card border font-semibold" />
+                  </div>
+                  <div>
+                    <label class="font-bold text-muted block mb-1">Формат турнира</label>
+                    <select id="customTourneyFormat" class="w-full px-3 py-2 rounded-xl card border font-semibold">
+                      <option value="knockout">Олимпийский Плей-офф (на выбывание)</option>
+                      <option value="arena">Арена Блиц-Марафон (на очки)</option>
+                      <option value="roundrobin">Круговая Лига (каждый с каждым)</option>
+                      <option value="kinghill">Царь Горы (серия на выживание)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="font-bold text-muted block mb-1">Состав участников</label>
+                    <select id="customTourneyOpponents" class="w-full px-3 py-2 rounded-xl card border font-semibold">
+                      <option value="bots">С ботами ИИ (мгновенный старт)</option>
+                      <option value="players">Реальные игроки по коду приглашения</option>
+                      <option value="mixed">Реальные игроки + добор ботами</option>
+                    </select>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="font-bold text-muted block mb-1">Правила</label>
+                      <select id="customTourneyRule" class="w-full px-2.5 py-2 rounded-xl card border font-semibold">
+                        <option value="russian">Русские 8×8</option>
+                        <option value="international">Междунар. 10×10</option>
+                        <option value="brazilian">Бразильские</option>
+                        <option value="english">Английские</option>
+                        <option value="spanish">Испанские</option>
+                        <option value="turkish">Турецкие</option>
+                        <option value="giveaway">Поддавки</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="font-bold text-muted block mb-1">Участников</label>
+                      <select id="customTourneySize" class="w-full px-2.5 py-2 rounded-xl card border font-semibold">
+                        <option value="4">4 участника</option>
+                        <option value="8" selected>8 участников</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button id="createCustomTourneyBtn" class="w-full py-3 rounded-2xl accent-btn-3d text-xs font-black mt-2">
+                    🏆 Запустить турнир и получить код
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             VIEW 3: CS2 CHEST SYSTEM (10 TIERS x 3 GRADES, ROULETTE, BOOSTERS, FRAGMENTS)
+             =================================================================== -->
+        <section id="tab-chests" class="tab-panel hidden space-y-5">
+          <!-- Top Summary Banner -->
+          <div class="surface border rounded-3xl p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-2xl">📦</span>
+                <h2 class="text-xl font-black">Система Сундуков и Наград CS2</h2>
+                <span id="currentChestTierBadge" class="text-xs px-3 py-0.5 rounded-full accent-soft font-extrabold">Тир 1: Обычный</span>
+              </div>
+              <p class="text-xs text-muted mt-1">
+                10 уровней редкости сундуков × 3 разряда (III → II → I) = 30 ступеней. Открывайте <b>Обычные</b> и <b>Редкие</b> сундуки, выбивайте 64+ эксклюзивных стиля досок и шашек, рамки, титулы, кристаллы и бустеры!
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <div class="px-3.5 py-2 rounded-xl card border text-xs font-black text-amber-400">🪙 <span id="chestViewCoins">500</span></div>
+              <div class="px-3.5 py-2 rounded-xl card border text-xs font-black text-cyan-400">💎 <span id="chestViewCrystals">25</span></div>
+              <button id="chestOpenLevelRoadBtn" class="px-3.5 py-2 rounded-xl accent-soft text-xs font-extrabold">
+                🎁 Таблица уровней →
+              </button>
+            </div>
+          </div>
+
+          <!-- CS2 Case Roulette Stage -->
+          <div class="surface border rounded-3xl p-5 space-y-4 shadow-xl">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 id="rouletteCaseTitle" class="text-base font-black">Выберите сундук для открытия</h3>
+                <p id="rouletteCaseSubtitle" class="text-xs text-muted">Рулетка в стиле Counter-Strike 2: остановите лазер на Легендарном или Редком скине!</p>
+              </div>
+              <div class="flex items-center gap-2 text-[11px] font-extrabold">
+                <span class="px-2 py-0.5 rounded" style="background:rgba(59,130,246,0.18); color:#3b82f6">Обычный</span>
+                <span class="px-2 py-0.5 rounded" style="background:rgba(168,85,247,0.18); color:#a855f7">Необычный</span>
+                <span class="px-2 py-0.5 rounded" style="background:rgba(236,72,153,0.18); color:#ec4899">Редкий</span>
+                <span class="px-2 py-0.5 rounded" style="background:rgba(245,158,11,0.22); color:#f59e0b">Легендарный ★</span>
+              </div>
+            </div>
+
+            <!-- Horizontal CS2 Roulette Viewport -->
+            <div class="cs2-roulette-viewport">
+              <div class="cs2-laser-line"></div>
+              <div id="cs2RouletteTrack" class="cs2-roulette-track"></div>
+            </div>
+
+            <!-- Two Main Chest Cards (Обычный Сундук & Редкий Сундук) + Grade Selector -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <!-- Standard Chest (Обычный сундук) -->
+              <div class="card border-2 rounded-3xl p-4 flex flex-col justify-between gap-3" style="border-color: rgba(59, 130, 246, 0.45);">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl" style="background:rgba(59,130,246,0.16); border:1px solid rgba(59,130,246,0.4);">📦</div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <h4 class="text-base font-black">Обычный сундук</h4>
+                        <span id="stdChestTierTag" class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-bold">I–III разряд</span>
+                      </div>
+                      <p class="text-xs text-muted mt-0.5">Монеты, бустеры, фрагменты и шанс выбить редкие стили доски и шашек</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-[11px] text-muted grid grid-cols-4 gap-1 text-center pt-1">
+                  <div class="p-1 rounded elevated"><div class="font-bold text-blue-400">56%</div><div>Обычн.</div></div>
+                  <div class="p-1 rounded elevated"><div class="font-bold text-purple-400">30%</div><div>Необыч.</div></div>
+                  <div class="p-1 rounded elevated"><div class="font-bold text-pink-400">11%</div><div>Редкий</div></div>
+                  <div class="p-1 rounded elevated"><div class="font-bold text-amber-400">3%</div><div>Легенд.</div></div>
+                </div>
+                <div class="flex gap-2">
+                  <button id="openCommonChestCoinsBtn" class="flex-1 py-2.5 px-3 rounded-2xl accent-btn-3d text-xs font-black">
+                    Открыть за 🪙 150
+                  </button>
+                  <button id="openCommonChestInvBtn" class="hidden py-2.5 px-4 rounded-2xl bg-emerald-500 text-white text-xs font-black">
+                    Открыть бесплатно (в инвентаре: <span id="invCommonCount">0</span>)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Rare Chest (Редкий сундук) -->
+              <div class="card border-2 rounded-3xl p-4 flex flex-col justify-between gap-3" style="border-color: rgba(245, 158, 11, 0.65); box-shadow: 0 0 24px rgba(245, 158, 11, 0.12);">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl" style="background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.55);">👑</div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <h4 class="text-base font-black text-amber-400">Редкий сундук</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-extrabold">Повышенный шанс ★</span>
+                      </div>
+                      <p class="text-xs text-muted mt-0.5">В 3 раза выше шанс на Редкие и Легендарные скины доски/фигур, кристаллы и титулы!</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-[11px] text-muted grid grid-cols-4 gap-1 text-center pt-1">
+                  <div class="p-1 rounded elevated"><div class="font-bold text-blue-400">22%</div><div>Обычн.</div></div>
+                  <div class="p-1 rounded elevated"><div class="font-bold text-purple-400">43%</div><div>Необыч.</div></div>
+                  <div class="p-1 rounded elevated"><div class="font-bold text-pink-400">26%</div><div>Редкий</div></div>
+                  <div class="p-1 rounded elevated"><div class="font-bold text-amber-400">9%</div><div>Легенд.</div></div>
+                </div>
+                <div class="flex gap-2">
+                  <button id="openRareChestCoinsBtn" class="flex-1 py-2.5 px-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black">
+                    Открыть за 🪙 420
+                  </button>
+                  <button id="openRareChestCrystalsBtn" class="py-2.5 px-3 rounded-2xl surface border text-xs font-black text-cyan-400">
+                    💎 12
+                  </button>
+                  <button id="openRareChestInvBtn" class="hidden py-2.5 px-3 rounded-2xl bg-emerald-500 text-white text-xs font-black">
+                    Бесплатно (<span id="invRareCount">0</span>)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Owned Reward Chests Inventory (From Level Ups & Tournaments) -->
+          <div class="surface border rounded-3xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-extrabold">🎒 Ваши наградные сундуки (по разрядам I, II, III)</h3>
+                <p class="text-xs text-muted">Сундуки, полученные за повышение уровня и призовые места в турнирах</p>
+              </div>
+            </div>
+            <div id="ownedChestsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+          </div>
+
+          <!-- Boosters & Economy Shop + 30-Stage Tier Reference -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Boosters Inventory & Economy Store -->
+            <div class="lg:col-span-6 surface border rounded-3xl p-5 space-y-3.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-base font-extrabold">🛒 Магазин Экономики и Бустеров</h3>
+                  <p class="text-xs text-muted">Покупайте бустеры, фрагменты скинов и билеты за заработанные монеты и кристаллы</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="card border rounded-2xl p-3 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">↩️</span>
+                    <div>
+                      <div class="text-xs font-extrabold">Отмена хода</div>
+                      <div class="text-[11px] accent-text font-black">В наличии: <span id="boosterUndoCount">3</span></div>
+                    </div>
+                  </div>
+                  <button data-buybooster="undo" class="buy-booster-btn px-2.5 py-1.5 rounded-xl accent-bg text-[11px] font-black shrink-0">+3 за 🪙 90</button>
+                </div>
+                <div class="card border rounded-2xl p-3 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">💡</span>
+                    <div>
+                      <div class="text-xs font-extrabold">Подсказка хода</div>
+                      <div class="text-[11px] accent-text font-black">В наличии: <span id="boosterHintCount">3</span></div>
+                    </div>
+                  </div>
+                  <button data-buybooster="hint" class="buy-booster-btn px-2.5 py-1.5 rounded-xl accent-bg text-[11px] font-black shrink-0">+3 за 🪙 110</button>
+                </div>
+                <div class="card border rounded-2xl p-3 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">🛡️</span>
+                    <div>
+                      <div class="text-xs font-extrabold">Щит рейтинга</div>
+                      <div class="text-[11px] accent-text font-black">В наличии: <span id="boosterShieldCount">1</span></div>
+                    </div>
+                  </div>
+                  <button data-buybooster="shield" class="buy-booster-btn px-2.5 py-1.5 rounded-xl accent-bg text-[11px] font-black shrink-0">+1 за 🪙 220</button>
+                </div>
+                <div class="card border rounded-2xl p-3 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">🎟️</span>
+                    <div>
+                      <div class="text-xs font-extrabold">Билет турнира</div>
+                      <div class="text-[11px] accent-text font-black">В наличии: <span id="boosterTicketCount">2</span></div>
+                    </div>
+                  </div>
+                  <button data-buybooster="ticket" class="buy-booster-btn px-2.5 py-1.5 rounded-xl accent-bg text-[11px] font-black shrink-0">+1 за 🪙 160</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <button id="buyRandomFragmentBtn" class="p-2.5 rounded-xl surface border text-xs font-extrabold flex items-center justify-between hover:opacity-90">
+                  <span>🧩 Фрагмент редкого скина</span>
+                  <span class="text-amber-400 font-black">🪙 240</span>
+                </button>
+                <button id="exchangeCrystalsCoinsBtn" class="p-2.5 rounded-xl surface border text-xs font-extrabold flex items-center justify-between hover:opacity-90">
+                  <span>💱 Обмен 5 💎 → 250 🪙</span>
+                  <span class="text-cyan-400 font-black">💎 5</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 10 Tiers x 3 Grades Structure Overview -->
+            <div class="lg:col-span-6 surface border rounded-3xl p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-base font-extrabold">🏛️ 10 Уровней редкости × 3 Разряда (30 ступеней)</h3>
+                  <p class="text-xs text-muted">Каждый 10-й уровень открывает новый тир сундуков с повышенными наградами</p>
+                </div>
+              </div>
+              <div id="chestTiersReferenceGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             VIEW 4: STYLES & SKINS (36 BOARDS + 36 PIECES + FRAMES + TITLES)
+             =================================================================== -->
+        <section id="tab-styles" class="tab-panel hidden space-y-5">
+          <!-- Rarity Filter & Collection Counter -->
+          <div class="surface border rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-black">Коллекция Стилей и Косметики (72+ скина)</h2>
+              <p class="text-xs text-muted mt-0.5">4 базовых стиля доступны сразу, а 32 стиля доски и 32 стиля шашек добываются из сундуков CS2 и за уровни!</p>
+            </div>
+            <div class="flex flex-wrap gap-1.5" id="styleRarityFilters">
+              <button data-rfilter="all" class="rfilter-btn px-3 py-1.5 rounded-xl text-xs font-extrabold accent-bg">Все</button>
+              <button data-rfilter="unlocked" class="rfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold card border">Открытые</button>
+              <button data-rfilter="common" class="rfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold card border" style="color:#3b82f6">Обычные</button>
+              <button data-rfilter="uncommon" class="rfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold card border" style="color:#a855f7">Необычные</button>
+              <button data-rfilter="rare" class="rfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold card border" style="color:#ec4899">Редкие</button>
+              <button data-rfilter="legendary" class="rfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold card border" style="color:#f59e0b">Легендарные ★</button>
+            </div>
+          </div>
+
+          <!-- 36 Board Styles -->
+          <div class="surface border rounded-3xl p-4 sm:p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-extrabold">Стили игровой доски (<span id="unlockedBoardsCountLabel">4 / 36</span>)</h2>
+                <p class="text-xs text-muted mt-0.5">Уникальные текстуры, неоновые сетки, лава, космос, руны и дерево</p>
+              </div>
+              <button id="goToChestsFromBoardsBtn" class="px-3 py-1.5 rounded-xl accent-soft text-xs font-extrabold">📦 Выбить в сундуках →</button>
+            </div>
+            <div id="boardThemesGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+          </div>
+
+          <!-- 36 Piece Styles -->
+          <div class="surface border rounded-3xl p-4 sm:p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-extrabold">Стили шашек и дамок (<span id="unlockedPiecesCountLabel">4 / 36</span>)</h2>
+                <p class="text-xs text-muted mt-0.5">Материал, гравировка, короны, плазменные и драконьи эффекты</p>
+              </div>
+              <button id="goToChestsFromPiecesBtn" class="px-3 py-1.5 rounded-xl accent-soft text-xs font-extrabold">📦 Выбить в сундуках →</button>
+            </div>
+            <div id="pieceStylesGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+          </div>
+
+          <!-- Avatar Frames & Titles -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="surface border rounded-3xl p-4 sm:p-5 space-y-3">
+              <h2 class="text-base font-extrabold">Рамки аватара (<span id="unlockedFramesCountLabel">2 / 16</span>)</h2>
+              <div id="avatarFramesGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"></div>
+            </div>
+            <div class="surface border rounded-3xl p-4 sm:p-5 space-y-3">
+              <h2 class="text-base font-extrabold">Титулы игрока (<span id="unlockedTitlesCountLabel">1 / 20</span>)</h2>
+              <div id="playerTitlesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            </div>
+          </div>
+
+          <!-- App Interface Theme & Accents -->
+          <div class="surface border rounded-3xl p-4 sm:p-5 space-y-4">
+            <div>
+              <h2 class="text-base font-extrabold">Тема интерфейса приложения</h2>
+            </div>
+            <div id="appThemesGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5"></div>
+            <div id="appAccentsGrid" class="grid grid-cols-3 sm:grid-cols-6 gap-2.5"></div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             VIEW 5: GAME HISTORY
+             =================================================================== -->
+        <section id="tab-history" class="tab-panel hidden space-y-4">
+          <div class="surface border rounded-3xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-extrabold">История игр</h2>
+                <p class="text-xs text-muted mt-0.5">Открывайте пошаговые повторы на арене или управляйте списком</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <select id="historyFilterSelect" class="px-3 py-2 rounded-xl card border text-xs font-semibold">
+                  <option value="all">Все партии</option>
+                  <option value="win">Победы</option>
+                  <option value="loss">Поражения</option>
+                  <option value="draw">Ничьи</option>
+                </select>
+                <button id="deleteSelectedHistoryBtn" class="hidden px-3 py-2 rounded-xl bg-rose-500 text-white text-xs font-bold">
+                  Удалить выбранные (<span id="selectedHistoryCount">0</span>)
+                </button>
+                <button id="clearAllHistoryBtn" class="px-3 py-2 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/20 text-xs font-bold hover:bg-rose-500/25 transition">
+                  Очистить всё
+                </button>
+              </div>
+            </div>
+            <div id="historyList" class="space-y-2.5"></div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             VIEW 6: SETTINGS (WITH GEMINI API KEY + IGNORE EMOJI & IGNORE MESSAGES)
+             =================================================================== -->
+        <section id="tab-settings" class="tab-panel hidden space-y-4">
+          <!-- Gemini AI & Chat/Emoji Privacy Card -->
+          <div class="surface border rounded-3xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-base font-extrabold flex items-center gap-2">
+                  <span>🤖 ИИ Gemini Комментатор и Фильтры Общения</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Новое</span>
+                </h2>
+                <p class="text-xs text-muted mt-0.5">Настройте бесплатный ключ Gemini API для генерации живых комментариев на ходы и управляйте блокировкой эмодзи и сообщений</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+              <div class="lg:col-span-7 card border rounded-2xl p-3.5 space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <label class="text-xs font-extrabold">Ключ API Google Gemini (Бесплатный тариф Google AI Studio)</label>
+                  <span id="geminiKeySavedIndicator" class="text-[11px] font-bold text-emerald-400">✓ Встроенный ИИ + Gemini активен</span>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <input id="settingGeminiApiKey" type="password" placeholder="Вставьте ключ AIzaSy... (или оставьте пустым)" class="flex-1 px-3 py-2 rounded-xl surface border text-xs font-mono" />
+                  <select id="settingGeminiModel" class="px-3 py-2 rounded-xl surface border text-xs font-bold">
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (Рекомендуемая)</option>
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Быстрая)</option>
+                    <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash-Lite (Лёгкая)</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                  </select>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="text-[11px] font-extrabold accent-text underline hover:opacity-80">
+                    🔑 Получить бесплатный ключ в Google AI Studio →
+                  </a>
+                  <div class="flex gap-2">
+                    <button id="saveGeminiKeyBtn" class="px-3.5 py-1.5 rounded-xl accent-bg text-xs font-extrabold">Сохранить</button>
+                    <button id="testGeminiKeyBtn" class="px-3 py-1.5 rounded-xl surface border text-xs font-bold">Тест ИИ</button>
+                  </div>
+                </div>
+                <p class="text-[11px] text-muted leading-relaxed">
+                  При игре с ИИ комментатор анализирует каждый ход, взятия, проходы в дамки и отвечает на ваши реплики в чате. Работает сразу из коробки, а с ключом <code>AIzaSy...</code> подключает облачную модель Gemini!
+                </p>
+              </div>
+
+              <!-- Ignore Emojis & Ignore Messages Toggles -->
+              <div class="lg:col-span-5 card border rounded-2xl p-3.5 space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-bold">🔕 Игнорировать эмодзи</div>
+                    <div class="text-xs text-muted">Скрывать все входящие эмодзи-реакции от соперников и зрителей</div>
+                  </div>
+                  <button data-setting="ignoreEmojis" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3 pt-2 border-t" style="border-color: var(--border-color);">
+                  <div>
+                    <div class="text-sm font-bold">🔇 Игнорировать сообщения</div>
+                    <div class="text-xs text-muted">Блокировать входящие сообщения чата и реплики соперника</div>
+                  </div>
+                  <button data-setting="ignoreMessages" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3 pt-2 border-t" style="border-color: var(--border-color);">
+                  <div>
+                    <div class="text-sm font-bold">💬 Комментарии ИИ на ходы</div>
+                    <div class="text-xs text-muted">ИИ комментирует ходы во время партии</div>
+                  </div>
+                  <button data-setting="aiCommentary" class="setting-toggle toggle-switch"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="surface border rounded-3xl p-4 sm:p-5 space-y-4">
+              <h2 class="text-base font-extrabold">Игровой процесс и Таймер</h2>
+              <div class="space-y-3.5">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Контроль времени</div>
+                    <div class="text-xs text-muted">Шахматные часы на каждого игрока</div>
+                  </div>
+                  <select id="settingTimeControl" class="px-3 py-1.5 rounded-xl card border text-xs font-semibold">
+                    <option value="none">Без таймера</option>
+                    <option value="180+2">Блиц 3+2</option>
+                    <option value="300+3">Рапид 5+3</option>
+                    <option value="600+0">Классика 10 мин</option>
+                    <option value="900+10">Турнир 15+10</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Стиль подсказок ходов</div>
+                    <div class="text-xs text-muted">Точки, кольца или заливка клетки</div>
+                  </div>
+                  <select id="settingHintStyle" class="px-3 py-1.5 rounded-xl card border text-xs font-semibold">
+                    <option value="dots">Точки</option>
+                    <option value="rings">Кольца</option>
+                    <option value="fill">Заливка клетки</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Подсветка возможных ходов</div>
+                    <div class="text-xs text-muted">Показывать доступные ходы при выборе шашки</div>
+                  </div>
+                  <button data-setting="showHints" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Подсветка обязательного боя</div>
+                    <div class="text-xs text-muted">Выделять шашки, которые обязаны бить</div>
+                  </div>
+                  <button data-setting="highlightForced" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Подсветка последнего хода</div>
+                    <div class="text-xs text-muted">Отмечать клетки откуда и куда пошёл соперник</div>
+                  </div>
+                  <button data-setting="highlightLastMove" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Автоход при единственном бое</div>
+                    <div class="text-xs text-muted">Автоматически выполнять вынужденное взятие</div>
+                  </div>
+                  <button data-setting="autoMoveForced" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Подтверждение хода</div>
+                    <div class="text-xs text-muted">Защита от случайных нажатий на телефоне</div>
+                  </div>
+                  <button data-setting="confirmMove" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Разрешить отмену хода</div>
+                    <div class="text-xs text-muted">Возврат хода в партиях с ИИ и вживую</div>
+                  </div>
+                  <button data-setting="allowUndo" class="setting-toggle toggle-switch"></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface border rounded-3xl p-4 sm:p-5 space-y-4">
+              <h2 class="text-base font-extrabold">Интерфейс и Фокус</h2>
+              <div class="space-y-3.5">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Максимальный размер доски</div>
+                    <div class="text-xs text-muted">Подстраивается под экран без скроллов</div>
+                  </div>
+                  <select id="settingBoardSize" class="px-3 py-1.5 rounded-xl card border text-xs font-semibold">
+                    <option value="520">Компактная</option>
+                    <option value="640">Стандартная</option>
+                    <option value="780">Максимальная</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Скорость анимации</div>
+                    <div class="text-xs text-muted">Плавность перемещения шашек</div>
+                  </div>
+                  <select id="settingAnimSpeed" class="px-3 py-1.5 rounded-xl card border text-xs font-semibold">
+                    <option value="0">Без анимации</option>
+                    <option value="110">Быстрая</option>
+                    <option value="200">Обычная</option>
+                    <option value="340">Плавная</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Режим «Дзен» (Фокус)</div>
+                    <div class="text-xs text-muted">Скрывать рейтинги ELO во время партии</div>
+                  </div>
+                  <button data-setting="zenMode" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Показывать перевес по шашкам</div>
+                    <div class="text-xs text-muted">Отображать преимущество (+1, +2) у игроков</div>
+                  </div>
+                  <button data-setting="showMaterial" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Координаты на доске</div>
+                    <div class="text-xs text-muted">Буквы и цифры по краям доски</div>
+                  </div>
+                  <button data-setting="showCoords" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Автоповорот в режиме «Вживую»</div>
+                    <div class="text-xs text-muted">Поворачивать доску после каждого хода</div>
+                  </div>
+                  <button data-setting="autoFlipLocal" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Сигнал малого времени</div>
+                    <div class="text-xs text-muted">Звуковое предупреждение при &lt; 20 сек и обратный отсчёт</div>
+                  </div>
+                  <button data-setting="lowTimeAlert" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">Вибрация (телефон)</div>
+                    <div class="text-xs text-muted">Тактильный отклик при ходе и взятии</div>
+                  </div>
+                  <button data-setting="vibration" class="setting-toggle toggle-switch"></button>
+                </div>
+                <div class="pt-2 border-t flex flex-wrap gap-2" style="border-color: var(--border-color);">
+                  <button id="resetSettingsBtn" class="px-3.5 py-2 rounded-xl card border text-xs font-bold hover:opacity-90">
+                    Сбросить настройки
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dedicated "Настройки звука" Section -->
+          <div id="soundSettingsSection" class="surface border rounded-3xl p-4 sm:p-5 space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-base font-extrabold flex items-center gap-2">
+                  <span>🔊 Настройки звука</span>
+                  <span id="masterSoundStateBadge" class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Звук включён</span>
+                </h2>
+                <p class="text-xs text-muted mt-0.5">Независимое управление общим звуком, фоновой музыкой, игровыми эффектами и уведомлениями</p>
+              </div>
+              <div class="flex items-center gap-3 card border rounded-2xl px-3.5 py-2">
+                <div>
+                  <div class="text-xs font-extrabold">Весь звук в игре</div>
+                  <div class="text-[10px] text-muted">Полное включение / отключение</div>
+                </div>
+                <button id="masterSoundToggleBtn" data-setting="soundEnabled" class="setting-toggle toggle-switch"></button>
+              </div>
+            </div>
+
+            <!-- Master Volume Bar -->
+            <div class="card border rounded-2xl p-3.5 space-y-2">
+              <div class="flex items-center justify-between text-xs font-extrabold">
+                <span>🎚️ Общая громкость (Мастер-уровень)</span>
+                <span id="volumeValueLabel" class="accent-text font-mono">60%</span>
+              </div>
+              <input id="settingVolume" type="range" min="0" max="100" value="60" class="w-full cursor-pointer" style="accent-color: var(--accent);" />
+              <div class="text-[10px] text-muted">Масштабирует все активные аудиоканалы. При полном отключении звука никакие аудиоэффекты не воспроизводятся.</div>
+            </div>
+
+            <!-- 3 Independent Channels: Music, Game Effects, Notifications -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- 1. Background Music -->
+              <div class="card border rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div>
+                      <div class="text-sm font-extrabold">🎵 Фоновая музыка</div>
+                      <div class="text-[11px] text-muted">Спокойный игровой эмбиент</div>
+                    </div>
+                    <button id="musicToggleBtn" data-setting="musicEnabled" class="setting-toggle toggle-switch"></button>
+                  </div>
+                  <div class="space-y-1.5 pt-2 border-t" style="border-color: var(--border-color);">
+                    <div class="flex justify-between text-xs font-semibold">
+                      <span>Громкость музыки</span>
+                      <span id="musicVolumeValueLabel" class="font-mono accent-text">25%</span>
+                    </div>
+                    <input id="settingMusicVolume" type="range" min="0" max="100" value="25" class="w-full cursor-pointer" style="accent-color: var(--accent);" />
+                  </div>
+                </div>
+                <button id="previewMusicBtn" type="button" class="w-full py-2 px-3 rounded-xl surface border text-xs font-extrabold hover:opacity-90 transition flex items-center justify-center gap-1.5">
+                  <span>🎵</span><span id="previewMusicBtnLabel">Прослушать музыку</span>
+                </button>
+              </div>
+
+              <!-- 2. Game Sound Effects (SFX) -->
+              <div class="card border rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div>
+                      <div class="text-sm font-extrabold">♟️ Звуковые эффекты</div>
+                      <div class="text-[11px] text-muted">Ходы, взятия, дамки, исход матча</div>
+                    </div>
+                    <button id="sfxToggleBtn" data-setting="sfxEnabled" class="setting-toggle toggle-switch"></button>
+                  </div>
+                  <div class="space-y-1.5 pt-2 border-t" style="border-color: var(--border-color);">
+                    <div class="flex justify-between text-xs font-semibold">
+                      <span>Громкость эффектов</span>
+                      <span id="sfxVolumeValueLabel" class="font-mono accent-text">55%</span>
+                    </div>
+                    <input id="settingSfxVolume" type="range" min="0" max="100" value="55" class="w-full cursor-pointer" style="accent-color: var(--accent);" />
+                  </div>
+                </div>
+                <button id="previewSfxBtn" type="button" class="w-full py-2 px-3 rounded-xl surface border text-xs font-extrabold hover:opacity-90 transition flex items-center justify-center gap-1.5">
+                  <span>🔊</span><span>Прослушать эффект</span>
+                </button>
+              </div>
+
+              <!-- 3. Notification & Timer Sounds -->
+              <div class="card border rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div>
+                      <div class="text-sm font-extrabold">🔔 Звуки уведомлений</div>
+                      <div class="text-[11px] text-muted">Приглашения, соперник, таймер</div>
+                    </div>
+                    <button id="notificationsToggleBtn" data-setting="notificationsEnabled" class="setting-toggle toggle-switch"></button>
+                  </div>
+                  <div class="space-y-1.5 pt-2 border-t" style="border-color: var(--border-color);">
+                    <div class="flex justify-between text-xs font-semibold">
+                      <span>Громкость уведомлений</span>
+                      <span id="notificationsVolumeValueLabel" class="font-mono accent-text">50%</span>
+                    </div>
+                    <input id="settingNotificationsVolume" type="range" min="0" max="100" value="50" class="w-full cursor-pointer" style="accent-color: var(--accent);" />
+                  </div>
+                </div>
+                <button id="previewNotificationBtn" type="button" class="w-full py-2 px-3 rounded-xl surface border text-xs font-extrabold hover:opacity-90 transition flex items-center justify-center gap-1.5">
+                  <span>🔔</span><span>Прослушать уведомление</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Interactive Sound Preview Studio -->
+            <div class="card border rounded-2xl p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 class="text-xs font-extrabold uppercase tracking-wider text-muted">🎧 Прослушивание звуковых эффектов</h3>
+                  <p class="text-[11px] text-muted mt-0.5">Нажмите на любой звук, чтобы протестировать его с текущими настройками громкости</p>
+                </div>
+                <span id="lastPreviewedSoundLabel" class="text-[11px] font-bold accent-text">Выберите звук для прослушивания</span>
+              </div>
+              <div id="soundPreviewButtonsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                <button type="button" data-preview-sound="move" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>♟️</span><span class="truncate">1. Перемещение</span>
+                </button>
+                <button type="button" data-preview-sound="capture" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>⚔️</span><span class="truncate">2. Взятие шашки</span>
+                </button>
+                <button type="button" data-preview-sound="king" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>👑</span><span class="truncate">3. Дамка</span>
+                </button>
+                <button type="button" data-preview-sound="select" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>👆</span><span class="truncate">4. Выбор шашки</span>
+                </button>
+                <button type="button" data-preview-sound="win" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>🏆</span><span class="truncate">5а. Победа</span>
+                </button>
+                <button type="button" data-preview-sound="loss" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>😔</span><span class="truncate">5б. Поражение</span>
+                </button>
+                <button type="button" data-preview-sound="draw" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>🤝</span><span class="truncate">5в. Ничья</span>
+                </button>
+                <button type="button" data-preview-sound="game_start" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>🏁</span><span class="truncate">6а. Начало партии</span>
+                </button>
+                <button type="button" data-preview-sound="game_end" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>🔔</span><span class="truncate">6б. Конец партии</span>
+                </button>
+                <button type="button" data-preview-sound="ui_click" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>🖱️</span><span class="truncate">7. Кнопка UI</span>
+                </button>
+                <button type="button" data-preview-sound="invite" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>✉️</span><span class="truncate">8. Приглашение</span>
+                </button>
+                <button type="button" data-preview-sound="opponent_connect" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>🟢</span><span class="truncate">9а. Вход соперника</span>
+                </button>
+                <button type="button" data-preview-sound="opponent_disconnect" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>🔴</span><span class="truncate">9б. Выход соперника</span>
+                </button>
+                <button type="button" data-preview-sound="countdown_tick" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>⏱️</span><span class="truncate">10а. Отсчёт сек.</span>
+                </button>
+                <button type="button" data-preview-sound="low_time" class="sound-preview-btn px-3 py-2 rounded-xl surface border text-left text-xs font-bold hover:opacity-90 transition flex items-center gap-2">
+                  <span>⚠️</span><span class="truncate">10б. Мало времени</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             VIEW 7: OVERHAULED ACCOUNT, LEVEL ROAD, STATISTICS & 24 ACHIEVEMENTS
+             (NO JSON EXPORT / IMPORT!)
+             =================================================================== -->
+        <section id="tab-account" class="tab-panel hidden space-y-5">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Profile & Clickable Level Card -->
+            <div class="lg:col-span-5 surface border rounded-3xl p-5 space-y-4">
+              <div class="flex items-center gap-3.5">
+                <div id="profileBigAvatar" class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg shrink-0 overflow-hidden"></div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <h2 id="profileNameDisplay" class="text-xl font-extrabold truncate">Игрок</h2>
+                    <span id="profileCountryDisplay" class="text-lg">🇰🇿</span>
+                  </div>
+                  <div id="profileTitleBadge" class="text-[11px] font-bold text-amber-400 mt-0.5">Новичок шашек</div>
+                  <div id="profileRankBadge" class="mt-1"></div>
+                </div>
+              </div>
+
+              <!-- Clickable Level Box -> Opens Swipeable Level Road -->
+              <button id="profileLevelCardBtn" class="w-full text-left p-3.5 rounded-2xl card border-2 transition hover:opacity-95 space-y-2" style="border-color: var(--accent);">
+                <div class="flex items-center justify-between">
+                  <span id="profileLevelText" class="text-sm font-black accent-text">Уровень 1</span>
+                  <span class="text-[11px] font-extrabold px-2 py-0.5 rounded-lg accent-soft">Нажмите: таблица уровней →</span>
+                </div>
+                <div class="flex justify-between text-[11px] text-muted font-semibold">
+                  <span id="profileChestTierLabel">Тир сундуков: Обычный</span>
+                  <span id="profileXpText">0 / 100 EXP</span>
+                </div>
+                <div class="h-2.5 rounded-full elevated overflow-hidden">
+                  <div id="profileXpBar" class="h-full accent-bg transition-all duration-500" style="width: 8%"></div>
+                </div>
+              </button>
+
+              <!-- Edit Profile -->
+              <div class="space-y-3 pt-2 border-t" style="border-color: var(--border-color);">
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="col-span-2">
+                    <label class="text-[11px] font-bold text-muted">Имя аккаунта</label>
+                    <input id="accountNameInput" type="text" maxlength="20" class="w-full mt-1 px-3 py-2 rounded-xl card border text-sm font-semibold" />
+                  </div>
+                  <div>
+                    <label class="text-[11px] font-bold text-muted">Флаг</label>
+                    <select id="accountFlagSelect" class="w-full mt-1 px-2 py-2 rounded-xl card border text-sm">
+                      <option value="🇰🇿">🇰🇿 KZ</option>
+                      <option value="🇷🇺">🇷🇺 RU</option>
+                      <option value="🇺🇦">🇺🇦 UA</option>
+                      <option value="🇧🇾">🇧🇾 BY</option>
+                      <option value="🇺🇿">🇺🇿 UZ</option>
+                      <option value="🇺🇸">🇺🇸 US</option>
+                      <option value="🇩🇪">🇩🇪 DE</option>
+                      <option value="🌍">🌍 Мир</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-[11px] font-bold text-muted">Аватар (выберите или загрузите фото)</label>
+                    <label class="text-[11px] font-bold accent-text cursor-pointer hover:underline">
+                      📷 Загрузить фото
+                      <input id="avatarPhotoUpload" type="file" accept="image/*" class="hidden" />
+                    </label>
+                  </div>
+                  <div id="avatarPickerGrid" class="grid grid-cols-6 gap-2"></div>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-xl card border">
+                  <span id="accountAuthStatus" class="font-bold text-muted">Гостевой режим</span>
+                  <span id="accountEmailDisplay" class="text-muted truncate max-w-[160px]"></span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button id="saveAccountBtn" class="flex-1 py-2.5 rounded-xl accent-bg text-xs font-extrabold">Сохранить профиль</button>
+                  <button id="serverAuthOpenBtn" class="px-3.5 py-2.5 rounded-xl card border text-xs font-bold">🔐 Вход / Регистрация</button>
+                  <button id="logoutAccountBtn" class="hidden px-3 py-2.5 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/20 text-xs font-bold">Выйти</button>
+                </div>
+              </div>
+
+              <!-- Local Account Switcher (Export/Import JSON Removed as requested!) -->
+              <div class="pt-3 border-t space-y-2.5" style="border-color: var(--border-color);">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-muted">Профили на устройстве</span>
+                  <button id="newProfileBtn" class="text-xs font-bold accent-text">+ Создать ещё</button>
+                </div>
+                <div id="accountsList" class="flex flex-wrap gap-2"></div>
+              </div>
+            </div>
+
+            <!-- Radically Overhauled Statistics, Quests & 24 Achievements -->
+            <div class="lg:col-span-7 space-y-4">
+              <!-- Detailed Analytics & Stats -->
+              <div class="surface border rounded-3xl p-5 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 class="text-base font-extrabold">Расширенная статистика и рекорды</h3>
+                    <p class="text-xs text-muted">Полная аналитика ваших матчей, серий побед и боевых действий</p>
+                  </div>
+                  <div class="flex gap-2">
+                    <button id="openLevelRoadBtn" class="px-3 py-1.5 rounded-xl accent-bg text-xs font-extrabold">
+                      🎁 Шкала уровней (Свайп →)
+                    </button>
+                    <button id="openRanksTableBtn" class="px-3 py-1.5 rounded-xl card border text-xs font-extrabold">
+                      🎖 Звания
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Primary 4 Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div class="card border rounded-2xl p-3 text-center">
+                    <div id="statElo" class="text-2xl font-black accent-text">1200</div>
+                    <div class="text-[11px] text-muted font-semibold mt-0.5">Рейтинг ELO (Пик: <span id="statPeakElo">1200</span>)</div>
+                  </div>
+                  <div id="statLevelBoxBtn" class="card border rounded-2xl p-3 text-center cursor-pointer hover:opacity-90">
+                    <div id="statLevel" class="text-2xl font-black text-amber-400">1</div>
+                    <div class="text-[11px] accent-text font-bold mt-0.5">Уровень (Тап →)</div>
+                  </div>
+                  <div class="card border rounded-2xl p-3 text-center">
+                    <div id="statStreak" class="text-2xl font-black text-orange-400">🔥 0</div>
+                    <div class="text-[11px] text-muted font-semibold mt-0.5">Серия (Рекорд: <span id="statBestStreak">0</span>)</div>
+                  </div>
+                  <div class="card border rounded-2xl p-3 text-center">
+                    <div id="statWinrate" class="text-2xl font-black text-sky-400">0%</div>
+                    <div class="text-[11px] text-muted font-semibold mt-0.5">Винрейт</div>
+                  </div>
+                </div>
+
+                <!-- Secondary 6 Combat & Collection Metrics -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div class="card border rounded-xl p-2.5 flex items-center justify-between">
+                    <span class="text-muted font-semibold">Побед / Ничьих / Пор.</span>
+                    <span id="statWLD" class="font-extrabold text-emerald-400">0 / 0 / 0</span>
+                  </div>
+                  <div class="card border rounded-xl p-2.5 flex items-center justify-between">
+                    <span class="text-muted font-semibold">⚔️ Взято шашек</span>
+                    <span id="statCaptures" class="font-extrabold">0</span>
+                  </div>
+                  <div class="card border rounded-xl p-2.5 flex items-center justify-between">
+                    <span class="text-muted font-semibold">👑 Проведено дамок</span>
+                    <span id="statKings" class="font-extrabold text-amber-400">0</span>
+                  </div>
+                  <div class="card border rounded-xl p-2.5 flex items-center justify-between">
+                    <span class="text-muted font-semibold">🏆 Выиграно турниров</span>
+                    <span id="statTourneys" class="font-extrabold text-sky-400">0</span>
+                  </div>
+                  <div class="card border rounded-xl p-2.5 flex items-center justify-between">
+                    <span class="text-muted font-semibold">📦 Открыто сундуков</span>
+                    <span id="statChests" class="font-extrabold text-purple-400">0</span>
+                  </div>
+                  <div class="card border rounded-xl p-2.5 flex items-center justify-between">
+                    <span class="text-muted font-semibold">🎨 Собрано стилей</span>
+                    <span id="statStylesOwned" class="font-extrabold accent-text">8 / 72</span>
+                  </div>
+                </div>
+
+                <!-- Next Rank Stripe Preview -->
+                <div class="card border rounded-2xl p-3 flex items-center justify-between gap-3">
+                  <div class="text-xs">
+                    <div class="text-muted font-semibold">Следующее воинское звание / полоска:</div>
+                    <div id="nextRankPreview" class="font-extrabold mt-0.5">Новичок II (на уровне 3)</div>
+                  </div>
+                  <div id="currentRankStripesBig" class="flex items-center gap-1 text-amber-400"></div>
+                </div>
+              </div>
+
+              <!-- Daily Quests Full Section -->
+              <div class="surface border rounded-3xl p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-base font-extrabold">📋 Ежедневные задания (+150–500 EXP)</h3>
+                  <span class="text-xs text-muted font-semibold">Обновляются каждый день</span>
+                </div>
+                <div id="accountDailyQuestsList" class="space-y-2"></div>
+              </div>
+
+              <!-- Overhauled 24 Achievements with Claimable Rewards -->
+              <div class="surface border rounded-3xl p-5 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 class="text-base font-extrabold">🏅 Достижения и Триумфы (<span id="achievementsProgressLabel">0 / 24</span>)</h3>
+                    <p class="text-xs text-muted">Выполняйте достижения и забирайте EXP, Монеты и Кристаллы</p>
+                  </div>
+                </div>
+                <div id="achievementsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[460px] overflow-y-auto custom-scroll pr-1"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation (Lobby only) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 sidebar-bg border-t pb-safe" id="mobileNav">
+      <div class="grid grid-cols-7 h-14">
+        <button data-tab="home" class="nav-item active flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold">
+          <span class="text-sm leading-none">♟️</span><span>Играть</span>
+        </button>
+        <button data-tab="tournaments" class="nav-item flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold">
+          <span class="text-sm leading-none">🏆</span><span>Турнир</span>
+        </button>
+        <button data-tab="chests" class="nav-item flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold">
+          <span class="text-sm leading-none">📦</span><span>Кейсы</span>
+        </button>
+        <button data-tab="styles" class="nav-item flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold">
+          <span class="text-sm leading-none">🎨</span><span>Стили</span>
+        </button>
+        <button data-tab="history" class="nav-item flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold">
+          <span class="text-sm leading-none">📜</span><span>Повтор</span>
+        </button>
+        <button data-tab="settings" class="nav-item flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold">
+          <span class="text-sm leading-none">⚙️</span><span>ИИ/Опции</span>
+        </button>
+        <button data-tab="account" class="nav-item flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold">
+          <span class="text-sm leading-none">👤</span><span>Профиль</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- =========================================================================
+       PAGE 2: ZERO-SCROLL DEDICATED FULL-VIEWPORT GAME ARENA
+       ========================================================================= -->
+  <div id="gameArenaPage" class="hidden h-dvh max-h-dvh w-full overflow-hidden flex flex-col">
+    <!-- Slim Top Arena Bar (48px) -->
+    <header class="sidebar-bg border-b h-12 shrink-0 px-2.5 sm:px-5 flex items-center justify-between gap-2 z-30">
+      <div class="flex items-center gap-2 min-w-0">
+        <button id="backToLobbyBtn" class="px-2.5 py-1.5 rounded-xl surface border text-xs font-extrabold flex items-center gap-1 hover:opacity-90 transition shrink-0">
+          <span>←</span><span class="hidden sm:inline">В лобби</span>
+        </button>
+        <div class="truncate leading-tight">
+          <div id="arenaTitle" class="text-xs sm:text-sm font-extrabold truncate">Русские шашки</div>
+          <div id="arenaSubtitle" class="text-[10px] text-muted truncate">Против ИИ</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span id="arenaSpectatorPill" class="hidden items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30">
+          <span>👁</span><span id="arenaSpectatorCount">0</span>
+        </span>
+        <span id="arenaStreakPill" class="hidden sm:inline-flex items-center text-[11px] font-extrabold px-2 py-1 rounded-lg bg-orange-500/15 text-orange-400">🔥 0</span>
+        <span id="statusBadgeTop" class="hidden sm:inline-flex items-center text-[11px] font-extrabold px-2.5 py-1 rounded-lg accent-soft">Ход белых</span>
+        <button id="openRuleInfoBtn" class="px-2 py-1.5 rounded-xl surface border text-[11px] font-bold hover:opacity-90">?</button>
+        <button id="arenaQuickStyleBtn" title="Стиль" class="w-8 h-8 rounded-xl surface border flex items-center justify-center text-xs hover:opacity-90">🎨</button>
+        <button id="quickSoundBtn" title="Звук" class="w-8 h-8 rounded-xl surface border flex items-center justify-center hover:opacity-90">
+          <svg id="soundIconOn" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <svg id="soundIconOff" class="w-4 h-4 hidden text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Arena Main Body -->
+    <main id="arenaMain" class="flex-1 min-h-0 w-full max-w-7xl mx-auto px-2 sm:px-4 py-1.5 sm:py-2.5 flex flex-col lg:flex-row gap-2 sm:gap-4 overflow-hidden">
+
+      <!-- Board & Player Bars Column -->
+      <div id="arenaBoardCol" class="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 overflow-hidden relative">
+        <!-- Spectator Mode Banner -->
+        <div id="spectatorModeBanner" class="hidden w-full max-w-xl bg-sky-500/20 border border-sky-500/40 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 shrink-0">
+          <span class="text-xs font-extrabold text-sky-300">👁 Режим зрителя — Вы наблюдаете за партией в реальном времени</span>
+          <button id="exitSpectatorBtn" class="px-2.5 py-0.5 rounded-lg bg-rose-500/25 text-rose-300 text-[11px] font-bold">Выйти</button>
+        </div>
+
+        <!-- Replay Controls Banner -->
+        <div id="replayBanner" class="hidden w-full max-w-xl surface border rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2 shrink-0">
+          <span id="replayInfoText" class="text-[11px] font-bold text-sky-400 truncate">Повтор партии</span>
+          <div class="flex items-center gap-1 shrink-0">
+            <button id="replayFirstBtn" class="px-2 py-1 rounded-lg elevated text-[11px] font-bold">⏮</button>
+            <button id="replayPrevBtn" class="px-2 py-1 rounded-lg elevated text-[11px] font-bold">◀</button>
+            <span id="replayStepLabel" class="text-[11px] font-mono px-1">0/0</span>
+            <button id="replayNextBtn" class="px-2 py-1 rounded-lg elevated text-[11px] font-bold">▶</button>
+            <button id="replayLastBtn" class="px-2 py-1 rounded-lg elevated text-[11px] font-bold">⏭</button>
+            <button id="replayExitBtn" class="px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 text-[11px] font-bold">✕</button>
+          </div>
+        </div>
+
+        <!-- Top Player Bar -->
+        <div id="topPlayerBar" class="w-full surface border rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2 shrink-0 relative">
+          <div class="flex items-center gap-2 min-w-0">
+            <div id="topPlayerAvatar" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 overflow-hidden"></div>
+            <div class="min-w-0 leading-tight">
+              <div class="flex items-center gap-1.5">
+                <span id="topPlayerName" class="text-xs sm:text-sm font-bold truncate">ИИ • Любитель</span>
+                <span id="topPlayerTag" class="zen-hide text-[10px] px-1.5 py-0.5 rounded elevated text-muted font-semibold shrink-0">1350</span>
+                <span id="topMaterialBadge" class="hidden text-[10px] px-1.5 py-0.5 rounded accent-soft font-extrabold shrink-0">+1</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-muted">
+                <span id="topPlayerColorLabel">Чёрные</span><span>•</span><span id="topPlayerPieces">12</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <div id="topTurnDot" class="hidden w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
+            <div id="topClock" class="font-mono text-xs sm:text-sm font-bold px-2 py-0.5 rounded-lg card border">∞</div>
+          </div>
+        </div>
+
+        <!-- Dynamically Sized Square Board Shell -->
+        <div id="boardShell" class="relative rounded-2xl p-1 sm:p-1.5 surface border shadow-2xl shrink-0">
+          <canvas id="boardCanvas"></canvas>
+          <!-- Floating Emoji Anchor Layer -->
+          <div id="emojiOverlay" class="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl"></div>
+
+          <!-- Waiting for Real Online/Bluetooth Opponent Overlay -->
+          <div id="waitingOpponentOverlay" class="hidden absolute inset-0 z-30 rounded-2xl modal-backdrop flex flex-col items-center justify-center p-5 text-center space-y-3">
+            <div class="w-12 h-12 rounded-2xl accent-soft flex items-center justify-center text-2xl animate-bounce">📡</div>
+            <h3 id="waitingOverlayTitle" class="text-base sm:text-lg font-black">Ожидание реального соперника...</h3>
+            <p id="waitingOverlayDesc" class="text-xs text-muted max-w-xs">Отправьте код комнаты другу. Партия начнётся автоматически, как только игрок подключится!</p>
+            <div id="waitingCodeBox" class="px-5 py-2.5 rounded-2xl card border-2 font-mono text-xl font-black tracking-widest accent-text" style="border-color: var(--accent);">
+              ----
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <button id="copyWaitingCodeBtn" class="px-4 py-2 rounded-xl accent-bg text-xs font-extrabold">📋 Скопировать код</button>
+              <button id="cancelWaitingRoomBtn" class="px-4 py-2 rounded-xl bg-rose-500/20 text-rose-400 text-xs font-extrabold">Отмена</button>
+            </div>
+          </div>
+
+          <!-- Multi-capture chain indicator -->
+          <div id="chainBanner" class="hidden absolute top-2.5 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-rose-600 text-white text-[11px] font-extrabold shadow-xl flex items-center gap-1.5 whitespace-nowrap">
+            <span class="w-2 h-2 rounded-full bg-white pulse-dot"></span>
+            <span id="chainBannerText">Продолжите серию взятия!</span>
+          </div>
+          <!-- Live Previous Move Review Floating Banner -->
+          <div id="liveReviewBanner" class="hidden absolute top-2.5 left-1/2 -translate-x-1/2 z-20 px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 text-[11px] font-black shadow-xl flex items-center gap-2 whitespace-nowrap">
+            <span id="liveReviewBannerText">⏪ Просмотр хода</span>
+            <button id="liveReviewResumeBtn" class="px-2 py-0.5 rounded-full bg-slate-950 text-amber-400 text-[10px] font-black">К игре ▶</button>
+          </div>
+          <!-- Confirm Move Floating Bar -->
+          <div id="confirmMoveBar" class="hidden absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl surface border shadow-xl whitespace-nowrap">
+            <span class="text-xs font-semibold">Подтвердить?</span>
+            <button id="confirmMoveYes" class="px-2.5 py-1 rounded-lg accent-bg text-xs font-bold">Да</button>
+            <button id="confirmMoveNo" class="px-2.5 py-1 rounded-lg elevated text-xs font-semibold">Нет</button>
+          </div>
+        </div>
+
+        <!-- Bottom Player Bar -->
+        <div id="bottomPlayerBar" class="w-full surface border rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2 shrink-0 relative">
+          <div class="flex items-center gap-2 min-w-0">
+            <div id="bottomPlayerAvatar" class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 overflow-hidden"></div>
+            <div class="min-w-0 leading-tight">
+              <div class="flex items-center gap-1.5">
+                <span id="bottomPlayerName" class="text-xs sm:text-sm font-bold truncate">Игрок</span>
+                <span id="bottomPlayerRankMini" class="zen-hide text-[10px] font-bold accent-text shrink-0"></span>
+                <span id="bottomMaterialBadge" class="hidden text-[10px] px-1.5 py-0.5 rounded accent-soft font-extrabold shrink-0">+1</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-muted">
+                <span id="bottomPlayerColorLabel">Белые</span><span>•</span><span id="bottomPlayerPieces">12</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <div id="bottomTurnDot" class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
+            <div id="bottomClock" class="font-mono text-xs sm:text-sm font-bold px-2 py-0.5 rounded-lg card border">∞</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Right Side Panel -->
+      <aside class="hidden lg:flex lg:w-80 xl:w-96 shrink-0 flex-col gap-2.5 h-full min-h-0 overflow-hidden">
+        <!-- Status + Action Grid -->
+        <div class="surface border rounded-2xl p-3 space-y-2.5 shrink-0">
+          <div class="flex items-center justify-between gap-2">
+            <div id="statusBadge" class="inline-flex items-center text-xs font-extrabold px-2.5 py-1 rounded-lg accent-soft">Ход белых</div>
+            <span id="ruleQuickTag" class="text-[11px] text-muted font-semibold">8×8</span>
+          </div>
+          <div id="connectionStatusCard" class="hidden card border rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span id="connDot" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+              <span id="connLabel" class="text-[11px] font-semibold truncate">Онлайн-матч</span>
+            </div>
+            <button id="connManageBtn" class="text-[11px] accent-text font-bold shrink-0">Лобби</button>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button id="newGameBtn" class="py-2 px-2 rounded-xl accent-bg text-xs font-extrabold transition">Новая игра</button>
+            <button id="undoBtn" class="py-2 px-2 rounded-xl card border text-xs font-semibold hover:opacity-90">↩️ Отмена</button>
+            <button id="hintBtn" class="py-2 px-2 rounded-xl card border text-xs font-semibold hover:opacity-90">💡 Подсказка</button>
+            <button id="flipBoardBtn" class="py-2 px-2 rounded-xl card border text-xs font-semibold hover:opacity-90">Повернуть</button>
+            <button id="drawOfferBtn" class="py-2 px-2 rounded-xl card border text-xs font-semibold hover:opacity-90">Ничья</button>
+            <button id="resignBtn" class="py-2 px-2 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/20 text-xs font-semibold hover:bg-rose-500/25">Сдаться</button>
+          </div>
+        </div>
+
+        <!-- Quick Emoji Reactions Bar + Ignore Toggles -->
+        <div class="surface border rounded-2xl px-3 py-2 shrink-0 space-y-1.5">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-muted mr-1">Эмоции</span>
+            <div class="flex items-center gap-1 flex-wrap justify-end">
+              <button data-emote="👋" class="emote-btn w-7 h-7 rounded-lg card border text-sm hover:scale-110 transition">👋</button>
+              <button data-emote="👏" class="emote-btn w-7 h-7 rounded-lg card border text-sm hover:scale-110 transition">👏</button>
+              <button data-emote="🔥" class="emote-btn w-7 h-7 rounded-lg card border text-sm hover:scale-110 transition">🔥</button>
+              <button data-emote="😂" class="emote-btn w-7 h-7 rounded-lg card border text-sm hover:scale-110 transition">😂</button>
+              <button data-emote="😮" class="emote-btn w-7 h-7 rounded-lg card border text-sm hover:scale-110 transition">😮</button>
+              <button data-emote="🤔" class="emote-btn w-7 h-7 rounded-lg card border text-sm hover:scale-110 transition">🤔</button>
+              <button data-emote="😎" class="emote-btn w-7 h-7 rounded-lg card border text-sm hover:scale-110 transition">😎</button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-muted pt-1 border-t" style="border-color: var(--border-color);">
+            <button id="quickIgnoreEmojisBtn" class="hover:underline font-semibold">🔕 Игнор эмодзи: Выкл</button>
+            <button id="quickIgnoreMsgsBtn" class="hover:underline font-semibold">🔇 Игнор чата: Выкл</button>
+          </div>
+        </div>
+
+        <!-- Tabbed Panel: Moves & Live Chat / Gemini AI Commentary -->
+        <div class="surface border rounded-2xl p-3 flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
+          <div class="grid grid-cols-2 gap-1 p-1 rounded-xl card border shrink-0">
+            <button id="sideTabMovesBtn" class="py-1.5 rounded-lg text-xs font-extrabold accent-bg transition">Запись ходов</button>
+            <button id="sideTabChatBtn" class="py-1.5 rounded-lg text-xs font-bold text-muted transition flex items-center justify-center gap-1.5">
+              <span>Чат и ИИ</span>
+              <span id="chatUnreadDesktop" class="hidden px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px]">0</span>
+            </button>
+          </div>
+
+          <!-- Moves View (with Live Previous Move Step Inspector!) -->
+          <div id="sidePanelMoves" class="flex-1 min-h-0 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-[11px] text-muted shrink-0">
+              <span>Нотация (нажмите на ход для просмотра)</span>
+              <span id="moveCountBadge" class="font-mono">0 ходов</span>
+            </div>
+            <!-- Previous Moves Navigation Controls -->
+            <div class="grid grid-cols-5 gap-1 p-1 rounded-xl card border shrink-0 text-[11px] font-bold">
+              <button id="liveRevFirstBtn" title="В начало партии" class="py-1 rounded-lg surface hover:opacity-90">⏮</button>
+              <button id="liveRevPrevBtn" title="Предыдущий ход" class="py-1 rounded-lg surface hover:opacity-90">◀ Пред.</button>
+              <span id="liveRevStepLabel" class="flex items-center justify-center font-mono text-[10px] accent-text font-extrabold">LIVE</span>
+              <button id="liveRevNextBtn" title="Следующий ход" class="py-1 rounded-lg surface hover:opacity-90">Сл. ▶</button>
+              <button id="liveRevLatestBtn" title="Вернуться к текущей позиции" class="py-1 rounded-lg accent-bg font-extrabold">⏭</button>
+            </div>
+            <div id="moveLogList" class="flex-1 min-h-0 overflow-y-auto custom-scroll card border rounded-xl p-2 text-xs font-mono space-y-1">
+              <div class="text-muted text-center py-8 font-sans">Сделайте первый ход</div>
+            </div>
+          </div>
+
+          <!-- Chat View -->
+          <div id="sidePanelChat" class="hidden flex-1 min-h-0 flex flex-col gap-2">
+            <div id="chatMessages" class="flex-1 min-h-0 overflow-y-auto custom-scroll space-y-1.5 text-xs card border rounded-xl p-2.5"></div>
+            <div class="flex gap-1.5 shrink-0">
+              <input id="chatInput" type="text" maxlength="160" placeholder="Написать ИИ или сопернику..." class="flex-1 px-3 py-1.5 rounded-xl card border text-xs focus:outline-none" />
+              <button id="chatSendBtn" class="px-3 py-1.5 rounded-xl accent-bg text-xs font-bold">→</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Mobile Zero-Scroll Compact Bottom Action Bar -->
+    <footer class="lg:hidden sidebar-bg border-t shrink-0 px-2 pt-1.5 pb-safe z-30">
+      <div class="grid grid-cols-6 gap-1">
+        <button id="mobNewBtn" class="py-1.5 rounded-xl accent-bg flex flex-col items-center justify-center text-[10px] font-extrabold">
+          <span class="text-sm leading-none">🔄</span><span>Новая</span>
+        </button>
+        <button id="mobUndoBtn" class="py-1.5 rounded-xl surface border flex flex-col items-center justify-center text-[10px] font-bold">
+          <span class="text-sm leading-none">↩️</span><span>Отмена</span>
+        </button>
+        <button id="mobHintBtn" class="py-1.5 rounded-xl surface border flex flex-col items-center justify-center text-[10px] font-bold">
+          <span class="text-sm leading-none">💡</span><span>Ход</span>
+        </button>
+        <button id="mobEmojiBtn" class="py-1.5 rounded-xl surface border flex flex-col items-center justify-center text-[10px] font-bold">
+          <span class="text-sm leading-none">😊</span><span>Эмоции</span>
+        </button>
+        <button id="mobChatBtn" class="relative py-1.5 rounded-xl surface border flex flex-col items-center justify-center text-[10px] font-bold">
+          <span class="text-sm leading-none">💬</span><span>Чат/ИИ</span>
+          <span id="chatUnreadMobile" class="hidden absolute top-0.5 right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center font-bold">0</span>
+        </button>
+        <button id="mobMoreBtn" class="py-1.5 rounded-xl surface border flex flex-col items-center justify-center text-[10px] font-bold">
+          <span class="text-sm leading-none">⋯</span><span>Ещё</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Mobile Quick Emoji Popover -->
+  <div id="mobileEmojiSheet" class="hidden fixed inset-x-3 bottom-16 z-40 surface border rounded-2xl p-3 shadow-2xl">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-extrabold">Отправить реакцию</span>
+      <button id="closeEmojiSheetBtn" class="text-xs font-bold text-muted px-2">✕</button>
+    </div>
+    <div class="grid grid-cols-7 gap-1.5">
+      <button data-emote="👋" class="emote-btn h-10 rounded-xl card border text-xl">👋</button>
+      <button data-emote="👏" class="emote-btn h-10 rounded-xl card border text-xl">👏</button>
+      <button data-emote="🔥" class="emote-btn h-10 rounded-xl card border text-xl">🔥</button>
+      <button data-emote="😂" class="emote-btn h-10 rounded-xl card border text-xl">😂</button>
+      <button data-emote="😮" class="emote-btn h-10 rounded-xl card border text-xl">😮</button>
+      <button data-emote="🤔" class="emote-btn h-10 rounded-xl card border text-xl">🤔</button>
+      <button data-emote="😎" class="emote-btn h-10 rounded-xl card border text-xl">😎</button>
+    </div>
+  </div>
+
+  <!-- Mobile Chat Drawer -->
+  <div id="mobileChatSheet" class="hidden fixed inset-x-3 bottom-16 z-40 surface border rounded-2xl p-3 shadow-2xl space-y-2">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-extrabold">Чат партии и ИИ Gemini</span>
+      <button id="closeChatSheetBtn" class="text-xs font-bold text-muted px-2">✕</button>
+    </div>
+    <div id="mobileChatMessages" class="h-40 overflow-y-auto custom-scroll space-y-1.5 text-xs card border rounded-xl p-2"></div>
+    <div class="flex gap-1.5">
+      <input id="mobileChatInput" type="text" maxlength="160" placeholder="Написать..." class="flex-1 px-3 py-1.5 rounded-xl card border text-xs focus:outline-none" />
+      <button id="mobileChatSendBtn" class="px-3.5 py-1.5 rounded-xl accent-bg text-xs font-bold">→</button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: SWIPEABLE HORIZONTAL LEVEL ROAD (ТАБЛИЦА УРОВНЕЙ И НАГРАД — СВАЙП ВПРАВО)
+       ========================================================================= -->
+  <div id="levelRoadModalOverlay" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-3 sm:p-5">
+    <div class="surface border rounded-3xl max-w-5xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] flex flex-col">
+      <div class="flex items-start justify-between gap-3 shrink-0">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🎁</span>
+            <h3 class="text-lg sm:text-xl font-black">Дорога Уровней и Наград (Свайпайте вправо →)</h3>
+          </div>
+          <p class="text-xs text-muted mt-0.5">
+            Каждый уровень даёт монеты и сундук III/II разряда. Каждый <b>5-й (Юбилейный)</b> — кристаллы и сундук I разряда. Каждый <b>10-й (Этапный)</b> — новый тир сундуков и эксклюзивный скин!
+          </p>
+        </div>
+        <button id="closeLevelRoadModalBtn" class="w-8 h-8 rounded-xl elevated flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+
+      <!-- EXP Sources Rules Bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] shrink-0">
+        <div class="card border rounded-xl p-2.5">
+          <div class="font-extrabold text-emerald-400">🏆 Завершение матча</div>
+          <div class="text-muted mt-0.5">Победа: <b>+100 EXP</b> • Ничья: <b>+50 EXP</b> • Поражение: <b>0 EXP</b></div>
+        </div>
+        <div class="card border rounded-xl p-2.5">
+          <div class="font-extrabold text-amber-400">⚔️ Игровые действия</div>
+          <div class="text-muted mt-0.5"><b>+5 EXP</b> за взятие шашки • <b>+15 EXP</b> за превращение в дамку</div>
+        </div>
+        <div class="card border rounded-xl p-2.5">
+          <div class="font-extrabold text-orange-400">🔥 Бонус серии побед</div>
+          <div class="text-muted mt-0.5"><b>+20 EXP</b> за каждую победу подряд (до <b>+100 EXP</b>)</div>
+        </div>
+        <div class="card border rounded-xl p-2.5">
+          <div class="font-extrabold text-sky-400">📋 Ежедневные квесты</div>
+          <div class="text-muted mt-0.5">От <b>+150</b> до <b>+500 EXP</b> за выполнение задач</div>
+        </div>
+      </div>
+
+      <!-- Navigation Controls for Swipeable Level Track -->
+      <div class="flex items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2">
+          <button id="levelRoadScrollLeftBtn" class="px-3 py-1.5 rounded-xl card border text-xs font-extrabold">◀ Влево</button>
+          <button id="levelRoadCenterMeBtn" class="px-3 py-1.5 rounded-xl accent-soft text-xs font-extrabold">🎯 К моему уровню</button>
+          <button id="levelRoadScrollRightBtn" class="px-3 py-1.5 rounded-xl card border text-xs font-extrabold">Свайп вправо ▶</button>
+        </div>
+        <button id="claimAllLevelsBtn" class="px-4 py-1.5 rounded-xl accent-bg text-xs font-black">✨ Забрать все доступные награды</button>
+      </div>
+
+      <!-- Horizontal Swipeable Track -->
+      <div id="levelRoadTrack" class="level-road-scroll custom-scroll flex-1 items-stretch"></div>
+    </div>
+  </div>
+
+  <!-- Generic In-Page Modal -->
+  <div id="modalOverlay" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="surface border rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[85dvh] flex flex-col">
+      <div class="flex items-start justify-between gap-2 shrink-0">
+        <h3 id="modalTitle" class="text-lg font-extrabold"></h3>
+        <button id="modalCloseBtn" class="w-8 h-8 rounded-xl elevated flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <div id="modalBody" class="text-sm text-muted leading-relaxed overflow-y-auto custom-scroll flex-1"></div>
+      <div id="modalActions" class="flex justify-end gap-2 pt-1 shrink-0"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       CENTERED REGISTRATION, LOGIN & GUEST ACCESS SCREEN (INDEXEDDB + DB)
+       ========================================================================= -->
+  <div id="authModalOverlay" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4 overflow-y-auto">
+    <div class="surface border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 my-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl accent-bg flex items-center justify-center shadow-md shrink-0">
+            <span class="text-xl">♟️</span>
+          </div>
+          <div>
+            <h3 id="authScreenHeading" class="text-lg font-black leading-tight">Регистрация в Шашки Pro</h3>
+            <p id="authScreenSubheading" class="text-[11px] text-muted">Создайте аккаунт или играйте как гость</p>
+          </div>
+        </div>
+        <button id="authModalCloseBtn" title="Вернуться в меню" class="w-8 h-8 rounded-xl elevated flex items-center justify-center text-sm font-bold hover:opacity-90">✕</button>
+      </div>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-2xl card border">
+        <button id="authTabRegister" type="button" class="py-2 rounded-xl text-xs font-extrabold accent-bg transition">Регистрация</button>
+        <button id="authTabLogin" type="button" class="py-2 rounded-xl text-xs font-bold text-muted transition">Вход</button>
+      </div>
+
+      <!-- 1. ФОРМА РЕГИСТРАЦИИ (По центру страницы) -->
+      <form id="registerForm" class="space-y-3" novalidate>
+        <div>
+          <label for="regUsername" class="text-xs font-bold text-muted block">Имя пользователя *</label>
+          <input id="regUsername" type="text" autocomplete="username" maxlength="20" placeholder="Введите имя пользователя (3–20 символов)" class="w-full mt-1 px-3.5 py-2.5 rounded-xl card border text-sm font-semibold focus:outline-none" />
+        </div>
+        <div>
+          <label for="regEmail" class="text-xs font-bold text-muted block">Электронная почта *</label>
+          <input id="regEmail" type="email" autocomplete="email" maxlength="80" placeholder="example@mail.com" class="w-full mt-1 px-3.5 py-2.5 rounded-xl card border text-sm font-semibold focus:outline-none" />
+        </div>
+        <div>
+          <label for="regPassword" class="text-xs font-bold text-muted block">Пароль *</label>
+          <div class="relative mt-1">
+            <input id="regPassword" type="password" autocomplete="new-password" placeholder="Минимум 6 символов" class="w-full px-3.5 py-2.5 pr-10 rounded-xl card border text-sm font-semibold focus:outline-none" />
+            <button type="button" data-eye="regPassword" class="eye-toggle-btn absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted">👁</button>
+          </div>
+          <div class="mt-1.5 flex items-center gap-2">
+            <div class="flex-1 h-1.5 rounded-full elevated overflow-hidden"><div id="pwStrengthBar" class="h-full transition-all duration-300" style="width:0%"></div></div>
+            <span id="pwStrengthLabel" class="text-[10px] font-bold text-muted">Введите пароль</span>
+          </div>
+        </div>
+        <div>
+          <label for="regPasswordConfirm" class="text-xs font-bold text-muted block">Повторите пароль *</label>
+          <div class="relative mt-1">
+            <input id="regPasswordConfirm" type="password" autocomplete="new-password" placeholder="Повторите пароль" class="w-full px-3.5 py-2.5 pr-10 rounded-xl card border text-sm font-semibold focus:outline-none" />
+            <button type="button" data-eye="regPasswordConfirm" class="eye-toggle-btn absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted">👁</button>
+          </div>
+        </div>
+
+        <!-- Country & Avatar Quick Row -->
+        <div class="grid grid-cols-3 gap-2 pt-0.5">
+          <div>
+            <label class="text-[11px] font-bold text-muted block mb-1">Страна</label>
+            <select id="regFlag" class="w-full px-2 py-2 rounded-xl card border text-xs font-bold">
+              <option value="🇰🇿">🇰🇿 KZ</option>
+              <option value="🇷🇺">🇷🇺 RU</option>
+              <option value="🇺🇦">🇺🇦 UA</option>
+              <option value="🇧🇾">🇧🇾 BY</option>
+              <option value="🇺🇿">🇺🇿 UZ</option>
+              <option value="🇺🇸">🇺🇸 US</option>
+              <option value="🇩🇪">🇩🇪 DE</option>
+              <option value="🌍">🌍 Мир</option>
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="text-[11px] font-bold text-muted block mb-1">Аватар профиля</label>
+            <div id="regAvatarGrid" class="grid grid-cols-6 gap-1"></div>
+          </div>
+        </div>
+
+        <!-- Transfer Guest Progress from IndexedDB Checkbox -->
+        <div id="transferGuestProgressBox" class="p-3 rounded-2xl card border border-amber-500/30 bg-amber-500/10 flex items-start gap-2.5">
+          <input id="transferGuestCheckbox" type="checkbox" checked class="mt-0.5 w-4 h-4 rounded cursor-pointer" style="accent-color: var(--accent);" />
+          <label for="transferGuestCheckbox" class="text-xs leading-snug cursor-pointer">
+            <span class="font-extrabold text-amber-300">Перенести гостевой прогресс в аккаунт</span>
+            <span id="transferGuestStatsSummary" class="block text-[11px] text-muted mt-0.5">Сохранить историю партий, статистику, EXP и скины из IndexedDB</span>
+          </label>
+        </div>
+
+        <div id="regErrorMsg" class="hidden text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2"></div>
+        <div id="regSuccessMsg" class="hidden text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2"></div>
+
+        <button id="regSubmitBtn" type="submit" class="w-full py-3 rounded-2xl accent-btn-3d text-sm font-black">
+          Зарегистрироваться
+        </button>
+
+        <div class="text-center pt-1">
+          <button id="linkToLoginFromReg" type="button" class="text-xs font-extrabold accent-text hover:underline">
+            Уже есть аккаунт? Войти
+          </button>
+        </div>
+      </form>
+
+      <!-- 2. ФОРМА ВХОДА (При нажатии «Войти») -->
+      <form id="loginForm" class="hidden space-y-3" novalidate>
+        <div>
+          <label for="loginUsername" class="text-xs font-bold text-muted block">Email или имя пользователя</label>
+          <input id="loginUsername" type="text" autocomplete="username" maxlength="80" placeholder="Введите Email или имя пользователя" class="w-full mt-1 px-3.5 py-2.5 rounded-xl card border text-sm font-semibold focus:outline-none" />
+        </div>
+        <div>
+          <div class="flex items-center justify-between">
+            <label for="loginPassword" class="text-xs font-bold text-muted">Пароль</label>
+            <button id="forgotPasswordLink" type="button" class="text-[11px] font-bold accent-text hover:underline">
+              Забыли пароль?
+            </button>
+          </div>
+          <div class="relative mt-1">
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Введите пароль" class="w-full px-3.5 py-2.5 pr-10 rounded-xl card border text-sm font-semibold focus:outline-none" />
+            <button type="button" data-eye="loginPassword" class="eye-toggle-btn absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted">👁</button>
+          </div>
+        </div>
+
+        <div id="loginErrorMsg" class="hidden text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2"></div>
+
+        <button id="loginSubmitBtn" type="submit" class="w-full py-3 rounded-2xl accent-btn-3d text-sm font-black">
+          Войти
+        </button>
+
+        <div class="text-center pt-1">
+          <button id="linkToRegFromLogin" type="button" class="text-xs font-extrabold accent-text hover:underline">
+            Нет аккаунта? Зарегистрироваться
+          </button>
+        </div>
+      </form>
+
+      <!-- ФОРМА ВОССТАНОВЛЕНИЯ ПАРОЛЯ (При нажатии «Забыли пароль?») -->
+      <form id="forgotPasswordForm" class="hidden space-y-3" novalidate>
+        <div class="p-3 rounded-xl card border text-xs text-muted">
+          Укажите ваш <b>Email или имя пользователя</b> и задайте новый пароль для восстановления доступа к аккаунту.
+        </div>
+        <div>
+          <label for="forgotIdentifierInput" class="text-xs font-bold text-muted block">Email или имя пользователя *</label>
+          <input id="forgotIdentifierInput" type="text" maxlength="80" placeholder="example@mail.com или логин" class="w-full mt-1 px-3.5 py-2.5 rounded-xl card border text-sm font-semibold focus:outline-none" />
+        </div>
+        <div>
+          <label for="forgotNewPasswordInput" class="text-xs font-bold text-muted block">Новый пароль (мин. 6 символов) *</label>
+          <input id="forgotNewPasswordInput" type="password" placeholder="Введите новый пароль" class="w-full mt-1 px-3.5 py-2.5 rounded-xl card border text-sm font-semibold focus:outline-none" />
+        </div>
+        <div id="forgotErrorMsg" class="hidden text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2"></div>
+        <div id="forgotSuccessMsg" class="hidden text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2"></div>
+        <button type="submit" class="w-full py-3 rounded-2xl accent-btn-3d text-sm font-black">
+          Восстановить и обновить пароль
+        </button>
+        <div class="text-center pt-1">
+          <button id="backToLoginFromForgot" type="button" class="text-xs font-bold text-muted hover:underline">
+            ← Вернуться ко входу
+          </button>
+        </div>
+      </form>
+
+      <!-- 3. ВХОД БЕЗ РЕГИСТРАЦИИ («Играть как гость» — под формами) -->
+      <div class="pt-3 border-t space-y-2.5" style="border-color: var(--border-color);">
+        <button id="playAsGuestBtn" type="button" class="w-full py-3 px-4 rounded-2xl surface border-2 text-sm font-black hover:opacity-95 transition flex items-center justify-center gap-2" style="border-color: var(--border-color);">
+          <span>🕹️</span>
+          <span id="playAsGuestBtnText">Играть как гость</span>
+        </button>
+        <div id="guestIndexedDbInfoText" class="text-[11px] text-muted text-center leading-relaxed">
+          Автоматически создаётся профиль <b>Guest_XXXX</b> в <b>IndexedDB</b>. Гостям доступна игра против ИИ, выбор сложности и сохранение истории партий и статистики.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-[92vw] max-w-sm"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="catalog.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
