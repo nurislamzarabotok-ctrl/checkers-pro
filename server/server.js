@@ -204,7 +204,15 @@ function startServer() {
 
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(express.json({ limit: '350kb' }));
-  app.use(express.static(path.join(__dirname, '..', 'public')));
+  app.use(express.static(path.join(__dirname, '..', 'public'), {
+    etag: false,
+    lastModified: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html') || filePath.endsWith('.js')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      }
+    }
+  }));
 
   const db = loadDB();
   const authLimiter = createRateLimiter(25, 15 * 60 * 1000);
